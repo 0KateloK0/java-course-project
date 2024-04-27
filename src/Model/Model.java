@@ -5,6 +5,7 @@ import Model.Loader.LoaderInterface;
 import Common.Task;
 // import java.util.ArrayList;
 import java.util.HashMap;
+
 // мне нужно загружать и выгружать как-то дела
 // хранить их как-то
 // хранить их историю изменения
@@ -48,5 +49,13 @@ public class Model {
 
     public HashMap<Integer, Task> getTasks() {
         return this.tasks;
+    }
+
+    public boolean verifyUser(String uncheckedUser) {
+        return false;
+    }
+
+    public void loadUser(String checkedUser) {
+
     }
 }

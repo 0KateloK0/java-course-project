@@ -13,10 +13,8 @@ public class Parser {
         var obj = new JSONObject(data);
         var tasksJSON = obj.getJSONArray("tasks");
         this.tasks = new HashMap<>();
-        // tasks = new ArrayList<Task>();
         for (int i = 0; i < tasksJSON.length(); ++i) {
-            Task task = Task.fromJSONObject(tasksJSON.getJSONObject(i));
-            // tasks.add(task);
+            Task task = new Task().fromJSONObject(tasksJSON.getJSONObject(i));
             tasks.put(task.id, task);
         }
     }

@@ -7,7 +7,7 @@ import java.text.ParseException;
 
 import org.json.JSONObject;
 
-public class Task {
+public class Task implements JSONifiable {
     public Integer id;
     public String name = "";
     public String description = "";
@@ -15,13 +15,16 @@ public class Task {
 
     public static final DateFormat TASK_DATE_FORMAT = new SimpleDateFormat("y MM dd HH:mm");
 
-    public static Task fromJSONObject(JSONObject obj) throws ParseException {
-        var res = new Task();
-        res.id = obj.getInt("id");
-        res.name = obj.getString("name");
-        res.description = obj.getString("description");
+    // public JSONObject toJSONObject() {
+
+    // }
+
+    public Task fromJSONObject(JSONObject obj) throws ParseException {
+        this.id = obj.getInt("id");
+        this.name = obj.getString("name");
+        this.description = obj.getString("description");
         var date_string = obj.getString("deadline");
-        res.deadline = TASK_DATE_FORMAT.parse(date_string);
-        return res;
+        this.deadline = TASK_DATE_FORMAT.parse(date_string);
+        return this;
     }
 }
