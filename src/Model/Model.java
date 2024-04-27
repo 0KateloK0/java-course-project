@@ -20,19 +20,16 @@ import java.util.HashMap;
 public class Model {
     LoaderInterface loader;
     HashMap<Integer, Task> tasks;
-    // HashMap<int, Task> tasks;
+    HashMap<Integer, User> users;
 
     public Model() {
+        this.tasks = new HashMap<>();
+        this.users = new HashMap<>();
         this.loader = new FileLoader("db.json");
-        var tasks = this.loader.loadTasks();
-        for (Task x : tasks.values()) {
-            System.out.println(x.id);
-            System.out.println(x.name);
-            System.out.println(x.description);
-            System.out.println(x.deadline);
 
-        }
-        this.tasks.putAll(tasks);
+        this.tasks.putAll(this.loader.loadTasks());
+        this.users.putAll(this.loader.loadUsers());
+
     }
 
     public void addTask(Task task) {
@@ -52,6 +49,10 @@ public class Model {
     }
 
     public boolean verifyUser(String uncheckedUser) {
+        for (var user : this.users.values()) {
+            if (user.name.equals(uncheckedUser))
+                return true;
+        }
         return false;
     }
 
