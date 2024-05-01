@@ -3,6 +3,8 @@ package Model;
 import Model.Loader.FileLoader;
 import Model.Loader.LoaderInterface;
 import Common.Task;
+import Common.TaskMap;
+
 // import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,11 +21,11 @@ import java.util.HashMap;
 
 public class Model {
     LoaderInterface loader;
-    HashMap<Integer, Task> tasks;
+    TaskMap tasks;
     HashMap<Integer, User> users;
 
     public Model() {
-        this.tasks = new HashMap<>();
+        this.tasks = new TaskMap();
         this.users = new HashMap<>();
         this.loader = new FileLoader("db.json");
 
@@ -44,7 +46,7 @@ public class Model {
         this.tasks.put(index, newTask);
     }
 
-    public HashMap<Integer, Task> getTasks() {
+    public TaskMap getTasks() {
         return this.tasks;
     }
 
