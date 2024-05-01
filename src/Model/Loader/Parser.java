@@ -5,7 +5,7 @@ import org.json.*;
 import java.text.ParseException;
 import java.util.HashMap;
 import Common.Task;
-import Model.User;
+import Common.User;
 
 public class Parser {
     HashMap<Integer, Task> tasks;

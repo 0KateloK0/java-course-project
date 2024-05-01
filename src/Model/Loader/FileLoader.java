@@ -8,7 +8,7 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 
 import Common.Task;
-import Model.User;
+import Common.User;
 
 public class FileLoader implements LoaderInterface {
     private String filename;

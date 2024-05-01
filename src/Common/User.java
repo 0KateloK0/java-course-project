@@ -1,10 +1,8 @@
-package Model;
+package Common;
 
 import java.text.ParseException;
 
 import org.json.JSONObject;
-
-import Common.JSONifiable;
 
 public class User implements JSONifiable {
     public String name;

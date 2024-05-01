@@ -22,7 +22,7 @@ public class TaskCreationManager extends Panel {
             public void actionPerformed(ActionEvent e) {
                 var task = new Task();
                 task.name = nameInsert.getText();
-                controller.executeCommand(new CreateTaskCommand(controller.model, task));
+                controller.executeCommand(new CreateTaskCommand(controller, task));
             }
         });
     }

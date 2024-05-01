@@ -1,7 +1,8 @@
 package Model.Loader;
 
 import Common.Task;
-import Model.User;
+import Common.User;
+
 import java.util.HashMap;
 
 public interface LoaderInterface {

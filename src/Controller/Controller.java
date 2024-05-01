@@ -4,6 +4,7 @@ import Model.Model;
 import View.View;
 import java.util.function.Function;
 
+import Common.Task;
 import Common.Commands.AbstractCommand;
 import Common.Commands.CommandHistory;
 
@@ -13,13 +14,13 @@ public class Controller {
     public CommandHistory commandHistory;
 
     public Controller() {
-        model = new Model();
         view = new View(this, new Function<String, Boolean>() {
             public Boolean apply(String s) {
                 view.loadMainScreen(); // КОСТЫЛЬ!!!
                 return true;
             }
-        }, model.getTasks());
+        });
+        model = new Model(this, view);
     }
 
     public void mainLoop() {
@@ -29,5 +30,18 @@ public class Controller {
     public void executeCommand(AbstractCommand cmd) {
         commandHistory.add(cmd);
         cmd.execute();
+    }
+
+    public void addTask(Task task) {
+        model.addTask(task);
+
+    }
+
+    public void deleteTask(int index) {
+        model.deleteTask(index);
+    }
+
+    public void changeTask(Task oldTask, Task newTask) {
+        model.changeTask(oldTask.id, newTask);
     }
 }

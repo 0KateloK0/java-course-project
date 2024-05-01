@@ -1,18 +1,23 @@
 package Common.Commands;
 
-import Model.Model;
 import Common.Task;
+import Controller.Controller;
 
 public class CreateTaskCommand extends AbstractCommand {
-    Model model;
+    Controller controller;
     Task task;
 
-    public CreateTaskCommand(Model model, Task task) {
-        this.model = model;
+    public CreateTaskCommand(Controller controller, Task task) {
+        this.controller = controller;
         this.task = task;
     }
 
     public void execute() {
-        model.addTask(this.task);
+        controller.addTask(this.task);
+    }
+
+    public Boolean undo() {
+        controller.deleteTask(task.id); // TODO: добавить проверку что задание существует
+        return true;
     }
 }

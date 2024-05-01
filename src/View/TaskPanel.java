@@ -8,6 +8,7 @@ import javax.swing.BoxLayout;
 import Common.Task;
 import Common.TaskState;
 import Common.Commands.ChangeTaskCommand;
+import Common.Commands.DeleteTaskCommand;
 import Controller.Controller;
 
 public class TaskPanel extends Panel {
@@ -27,6 +28,8 @@ public class TaskPanel extends Panel {
         add(descriptionPanel);
         var deadlineLabel = new Label(Task.TASK_DATE_FORMAT.format(task.deadline));
         add(deadlineLabel);
+        var deleteButton = new Button("удалить");
+        add(deleteButton);
         setVisible(true);
 
         var self = this;
@@ -34,7 +37,12 @@ public class TaskPanel extends Panel {
             public void itemStateChanged(ItemEvent e) {
                 var newTask = new Task(self.task);
                 newTask.state = checkButton.getState() ? TaskState.DONE : TaskState.DUE;
-                controller.executeCommand(new ChangeTaskCommand(controller.model, self.task, newTask));
+                controller.executeCommand(new ChangeTaskCommand(controller, self.task, newTask));
+            }
+        });
+        deleteButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                controller.executeCommand(new DeleteTaskCommand(controller, self.task));
             }
         });
     }

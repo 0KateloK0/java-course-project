@@ -4,9 +4,13 @@ import Model.Loader.FileLoader;
 import Model.Loader.LoaderInterface;
 import Common.Task;
 import Common.TaskMap;
+import Common.User;
+import Controller.Controller;
 
 // import java.util.ArrayList;
 import java.util.HashMap;
+
+import View.View;
 
 // мне нужно загружать и выгружать как-то дела
 // хранить их как-то
@@ -23,11 +27,15 @@ public class Model {
     LoaderInterface loader;
     TaskMap tasks;
     HashMap<Integer, User> users;
+    Controller controller;
+    View view;
 
-    public Model() {
+    public Model(Controller controller, View view) {
         this.tasks = new TaskMap();
         this.users = new HashMap<>();
         this.loader = new FileLoader("db.json");
+        this.controller = controller;
+        this.view = view;
 
         this.tasks.putAll(this.loader.loadTasks());
         this.users.putAll(this.loader.loadUsers());

@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.function.Function;
 
-import Common.*;
 import Controller.Controller;
 
 public class View extends Frame {
@@ -15,7 +14,7 @@ public class View extends Frame {
     private static String TAKS_INTERFACE_CARD = "task interface card";
     public static Font FONT = new Font(Font.MONOSPACED, Font.PLAIN, 20);
 
-    public View(Controller controller, Function<String, Boolean> verifier, TaskMap tasks) {
+    public View(Controller controller, Function<String, Boolean> verifier) {
         this.controller = controller;
         setSize(1920, 1080);
         setTitle("Todo");
@@ -36,7 +35,7 @@ public class View extends Frame {
             }
         });
 
-        taskManager = new TaskManager(controller, tasks);
+        taskManager = new TaskManager(controller);
 
         setLayout(new CardLayout());
 
