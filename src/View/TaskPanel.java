@@ -3,7 +3,9 @@ package View;
 import java.awt.*;
 import java.awt.event.*;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 
 import Common.Task;
 import Common.TaskState;
@@ -11,14 +13,19 @@ import Common.Commands.ChangeTaskCommand;
 import Common.Commands.DeleteTaskCommand;
 import Controller.Controller;
 
-public class TaskPanel extends Panel {
+public class TaskPanel extends JPanel {
+    public static final Integer TASK_PANEL_HEIGHT = 100;
+    static final Integer TASK_CHECKBOX_SIZE = TASK_PANEL_HEIGHT / 2;
     private Task task;
 
     public TaskPanel(Controller controller, Task task) {
         this.task = task;
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        // setPreferredSize(new Dimension(50, TASK_PANEL_HEIGHT));
         var checkButton = new Checkbox();
         add(checkButton);
+        checkButton.setPreferredSize(new Dimension(TASK_CHECKBOX_SIZE, TASK_CHECKBOX_SIZE));
         var descriptionPanel = new Panel();
         descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.Y_AXIS));
         var nameLabel = new Label(task.name);

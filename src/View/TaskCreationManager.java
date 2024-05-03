@@ -13,7 +13,7 @@ public class TaskCreationManager extends Panel {
     public TaskCreationManager(Controller controller) {
         var submitButton = new Button("Создать");
         var nameInsert = new TextField();
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         add(submitButton);
         add(nameInsert);
 

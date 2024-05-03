@@ -31,27 +31,31 @@ public class Model {
     View view;
 
     public Model(Controller controller, View view) {
-        this.tasks = new TaskMap();
-        this.users = new HashMap<>();
-        this.loader = new FileLoader("db.json");
+        tasks = new TaskMap();
+        users = new HashMap<>();
+        loader = new FileLoader("db.json");
         this.controller = controller;
         this.view = view;
 
-        this.tasks.putAll(this.loader.loadTasks());
-        this.users.putAll(this.loader.loadUsers());
+        tasks.putAll(loader.loadTasks());
+        view.updateTasks(tasks);
+        users.putAll(loader.loadUsers());
 
     }
 
     public void addTask(Task task) {
         this.tasks.put(task.id, task);
+        this.view.updateTasks(tasks);
     }
 
     public void deleteTask(int index) {
         this.tasks.remove(index);
+        this.view.updateTasks(tasks);
     }
 
     public void changeTask(int index, Task newTask) {
         this.tasks.put(index, newTask);
+        this.view.updateTasks(tasks);
     }
 
     public TaskMap getTasks() {

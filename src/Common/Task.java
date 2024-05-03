@@ -8,6 +8,7 @@ import java.text.ParseException;
 import org.json.JSONObject;
 
 public class Task implements JSONifiable {
+    private static Integer lastId = 1;
     public Integer id = 0;
     public String name = "";
     public String description = "";
@@ -21,6 +22,8 @@ public class Task implements JSONifiable {
     // }
 
     public Task() {
+        deadline = new Date();
+        id = ++lastId;
     }
 
     public Task(Task task) {

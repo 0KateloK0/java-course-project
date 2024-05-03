@@ -14,6 +14,7 @@ public class Controller {
     public CommandHistory commandHistory;
 
     public Controller() {
+        commandHistory = new CommandHistory();
         view = new View(this, new Function<String, Boolean>() {
             public Boolean apply(String s) {
                 view.loadMainScreen(); // КОСТЫЛЬ!!!

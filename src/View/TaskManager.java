@@ -4,30 +4,45 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.BoxLayout;
+import javax.swing.border.EmptyBorder;
+import javax.swing.*;
 
+import Common.TaskMap;
 import Controller.Controller;
 
-public class TaskManager extends Panel {
+public class TaskManager extends JPanel {
     private TaskCreationManager taskCreationManager;
     private TaskList taskList;
     private final int CONTROL_PANEL_HEIGHT = 100;
+    private final int TASK_CREATION_PANEL_HEIGHT = 100;
 
     public TaskManager(Controller controller) {
-        taskCreationManager = new TaskCreationManager(controller);
-        taskCreationManager.setVisible(false);
+        // setSize(getPreferredSize());
+        var layout = new BorderLayout();
+        setLayout(layout);
+        layout.setHgap(20);
 
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBorder(new EmptyBorder(100, 100, 100, 100));
 
         var controlPanel = new Panel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
-        add(controlPanel);
+        add(controlPanel, BorderLayout.NORTH);
 
         var creationButton = new Button("Новое задание");
         controlPanel.add(creationButton);
+        var self = this;
         creationButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                taskCreationManager.setVisible(true);
+                if (taskCreationManager.isVisible()) {
+                    remove(taskCreationManager);
+                } else {
+                    add(taskCreationManager, BorderLayout.SOUTH);
+                }
+                taskCreationManager.setVisible(!taskCreationManager.isVisible());
+
+                self.validate();
+                self.repaint();
             }
         });
 
@@ -36,9 +51,20 @@ public class TaskManager extends Panel {
 
         controlPanel.add(undoButton);
         controlPanel.add(redoButton);
-        controlPanel.setSize(getWidth(), CONTROL_PANEL_HEIGHT);
+        controlPanel.setPreferredSize(new Dimension(getWidth(), CONTROL_PANEL_HEIGHT));
 
         taskList = new TaskList(controller);
-        add(taskList);
+        add(taskList, BorderLayout.CENTER);
+
+        taskCreationManager = new TaskCreationManager(controller);
+        add(taskCreationManager, BorderLayout.SOUTH);
+        taskCreationManager.setVisible(false);
+        taskCreationManager.setPreferredSize(new Dimension(getWidth(), TASK_CREATION_PANEL_HEIGHT));
+    }
+
+    public void updateTasks(TaskMap tasks) {
+        taskList.setTasks(tasks);
+        validate();
+        repaint();
     }
 }

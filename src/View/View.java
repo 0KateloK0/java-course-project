@@ -3,7 +3,10 @@ package View;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.function.Function;
-
+// import javax.swing.JFrame;
+// import javax.swing.event.*;
+// import javax.swing.text.*;
+import Common.TaskMap;
 import Controller.Controller;
 
 public class View extends Frame {
@@ -51,5 +54,9 @@ public class View extends Frame {
     public void loadMainScreen() {
         var cl = (CardLayout) (getLayout());
         cl.show(this, TAKS_INTERFACE_CARD);
+    }
+
+    public void updateTasks(TaskMap tasks) {
+        taskManager.updateTasks(tasks);
     }
 }
