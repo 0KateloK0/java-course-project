@@ -1,11 +1,14 @@
 package View;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.border.EmptyBorder;
-import javax.swing.*;
+import javax.swing.JPanel;
 
 import Common.TaskMap;
 import Controller.Controller;
@@ -24,11 +27,11 @@ public class TaskManager extends JPanel {
 
         setBorder(new EmptyBorder(100, 100, 100, 100));
 
-        var controlPanel = new Panel();
+        var controlPanel = new JPanel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
         add(controlPanel, BorderLayout.NORTH);
 
-        var creationButton = new Button("Новое задание");
+        var creationButton = new JButton("Новое задание");
         controlPanel.add(creationButton);
         var self = this;
         creationButton.addActionListener(new ActionListener() {
@@ -46,8 +49,8 @@ public class TaskManager extends JPanel {
             }
         });
 
-        var undoButton = new Button("Undo");
-        var redoButton = new Button("Redo");
+        var undoButton = new JButton("Undo");
+        var redoButton = new JButton("Redo");
 
         controlPanel.add(undoButton);
         controlPanel.add(redoButton);

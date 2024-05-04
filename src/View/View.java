@@ -1,15 +1,20 @@
 package View;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Font;
+import java.awt.CardLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+import javax.swing.JFrame;
+
 import java.util.function.Function;
-// import javax.swing.JFrame;
-// import javax.swing.event.*;
-// import javax.swing.text.*;
+
 import Common.TaskMap;
 import Controller.Controller;
 
-public class View extends Frame {
+public class View extends JFrame {
     Controller controller;
     private UserPrompt userPrompt;
     private TaskManager taskManager;
@@ -17,7 +22,7 @@ public class View extends Frame {
     private static String TAKS_INTERFACE_CARD = "task interface card";
     public static Font FONT = new Font(Font.MONOSPACED, Font.PLAIN, 20);
 
-    public View(Controller controller, Function<String, Boolean> verifier) {
+    View(Controller controller, Function<String, Boolean> verifier) {
         this.controller = controller;
         setSize(1920, 1080);
         setTitle("Todo");
@@ -58,5 +63,15 @@ public class View extends Frame {
 
     public void updateTasks(TaskMap tasks) {
         taskManager.updateTasks(tasks);
+    }
+
+    public static void setView(Controller controller, Function<String, Boolean> verifier) {
+        javax.swing.SwingUtilities.invokeLater(
+                new Runnable() {
+                    public void run() {
+                        var view = new View(controller, verifier);
+                        controller.setView(view);
+                    }
+                });
     }
 }

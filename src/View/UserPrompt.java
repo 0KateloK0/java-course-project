@@ -1,19 +1,22 @@
 package View;
 
-import java.awt.*;
 import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
-public class UserPrompt extends Panel {
+public class UserPrompt extends JPanel {
     boolean isRepeat = false;
-    TextField usernameInput;
+    JTextField usernameInput;
 
     UserPrompt(ActionListener onSubmit) {
-        Label usernameLabel = new Label("Введите ваше имя пользователя");
+        var usernameLabel = new JLabel("Введите ваше имя пользователя");
         usernameLabel.setFont(View.FONT);
-        usernameInput = new TextField();
-        Button submitButton = new Button("Войти");
+        usernameInput = new JTextField();
+        var submitButton = new JButton("Войти");
         submitButton.addActionListener(onSubmit);
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -30,7 +33,7 @@ public class UserPrompt extends Panel {
 
         isRepeat = value;
         if (value) {
-            Label incorrectUsernameLabel = new Label("Такого пользователя не существует");
+            var incorrectUsernameLabel = new JLabel("Такого пользователя не существует");
             add(incorrectUsernameLabel);
         }
     }

@@ -15,13 +15,26 @@ public class Controller {
 
     public Controller() {
         commandHistory = new CommandHistory();
-        view = new View(this, new Function<String, Boolean>() {
+
+        // view = new View(this, new Function<String, Boolean>() {
+        // public Boolean apply(String s) {
+        // view.loadMainScreen(); // КОСТЫЛЬ!!!
+        // return true;
+        // }
+        // });
+
+        // КОСТЫЛЬ
+        View.setView(this, new Function<String, Boolean>() {
             public Boolean apply(String s) {
                 view.loadMainScreen(); // КОСТЫЛЬ!!!
                 return true;
             }
         });
         model = new Model(this, view);
+    }
+
+    public void setView(View view) {
+        this.view = view;
     }
 
     public void mainLoop() {

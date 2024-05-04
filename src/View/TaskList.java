@@ -1,19 +1,21 @@
 package View;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
-import javax.swing.BoxLayout;
 import javax.swing.JScrollPane;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import Common.Task;
 import Common.TaskMap;
 import Controller.Controller;
 
-public class TaskList extends Panel {
+public class TaskList extends JPanel {
     public TaskMap tasks;
     Controller controller;
-    // List taskList;
     GridBagConstraints c;
     JScrollPane scroll;
     JPanel taskList;
@@ -48,15 +50,11 @@ public class TaskList extends Panel {
                     c.anchor = GridBagConstraints.PAGE_START;
 
                     taskList.add(taskPanel, c);
-                    System.out.println(x.id);
                 }
-                setVisible(true);
-                System.out.println("Я здесь был");
 
                 c.weighty = 1;
-                taskList.add(new Label(" "), c); // костыль нужный чтобы задания отображались в начале контейнера
+                taskList.add(new JLabel(" "), c); // костыль нужный чтобы задания отображались в начале контейнера
 
-                // invalidate();
                 validate();
                 repaint();
             }
