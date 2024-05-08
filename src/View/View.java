@@ -89,7 +89,8 @@ public class View extends JFrame implements WindowListener {
     @Override
     public void windowActivated(WindowEvent e) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'windowActivated'");
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'windowActivated'");
     }
 
     @Override
@@ -99,31 +100,34 @@ public class View extends JFrame implements WindowListener {
 
     @Override
     public void windowClosing(WindowEvent e) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'windowClosing'");
+        System.exit(0);
     }
 
     @Override
     public void windowDeactivated(WindowEvent e) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'windowDeactivated'");
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'windowDeactivated'");
     }
 
     @Override
     public void windowDeiconified(WindowEvent e) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'windowDeiconified'");
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'windowDeiconified'");
     }
 
     @Override
     public void windowIconified(WindowEvent e) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'windowIconified'");
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'windowIconified'");
     }
 
     @Override
     public void windowOpened(WindowEvent e) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'windowOpened'");
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'windowOpened'");
     }
 }

@@ -67,7 +67,7 @@ public class Model {
             if (user.name.equals(uncheckedUser))
                 return true;
         }
-        return false;
+        return true;
     }
 
     public void loadUser(String checkedUser) {
