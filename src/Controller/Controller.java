@@ -4,6 +4,8 @@ import Model.Model;
 import View.View;
 import java.util.function.Function;
 
+import javax.swing.SwingUtilities;
+
 import Common.Task;
 import Common.Commands.AbstractCommand;
 import Common.Commands.CommandHistory;
@@ -30,15 +32,21 @@ public class Controller {
                 return true;
             }
         });
-        model = new Model(this, view);
+        // model = new Model(this, view);
     }
 
     public void setView(View view) {
         this.view = view;
+        this.model = new Model(this, view);
     }
 
     public void mainLoop() {
-        view.promptUser();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                view.promptUser();
+            }
+        });
+
     }
 
     public void executeCommand(AbstractCommand cmd) {
