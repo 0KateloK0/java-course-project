@@ -2,7 +2,6 @@ package Controller;
 
 import Model.Model;
 import View.View;
-import java.util.function.Function;
 
 import javax.swing.SwingUtilities;
 
@@ -18,20 +17,8 @@ public class Controller {
     public Controller() {
         commandHistory = new CommandHistory();
 
-        // view = new View(this, new Function<String, Boolean>() {
-        // public Boolean apply(String s) {
-        // view.loadMainScreen(); // КОСТЫЛЬ!!!
-        // return true;
-        // }
-        // });
-
-        // КОСТЫЛЬ
-        View.setView(this, new Function<String, Boolean>() {
-            public Boolean apply(String s) {
-                view.loadMainScreen(); // КОСТЫЛЬ!!!
-                return true;
-            }
-        });
+        // КОСТЫЛЬ, устанавливает view для контроллера
+        View.createAndShowGUI(this);
         // model = new Model(this, view);
     }
 
@@ -47,6 +34,14 @@ public class Controller {
             }
         });
 
+    }
+
+    public void verify(String username) {
+        if (model.verifyUser(username)) {
+            view.loadMainScreen();
+        } else {
+            view.promptUser();
+        }
     }
 
     public void executeCommand(AbstractCommand cmd) {
