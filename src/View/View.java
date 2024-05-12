@@ -54,10 +54,10 @@ public class View extends JFrame implements WindowListener {
 
         userPrompt = new UserPrompt(controller);
 
-        taskManager = new TaskManager(controller);
+        // taskManager = new TaskManager(controller);
 
         container.add(userPrompt, USER_PROMPT_CARD);
-        container.add(taskManager, TAKS_INTERFACE_CARD);
+        // container.add(taskManager, TAKS_INTERFACE_CARD);
         add(container, BorderLayout.CENTER);
         pack();
     }
@@ -68,6 +68,8 @@ public class View extends JFrame implements WindowListener {
     }
 
     public void loadMainScreen() {
+        taskManager = new TaskManager(controller);
+        container.add(taskManager, TAKS_INTERFACE_CARD);
         var cl = (CardLayout) (container.getLayout());
         cl.show(container, TAKS_INTERFACE_CARD);
     }

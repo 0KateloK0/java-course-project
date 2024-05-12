@@ -51,7 +51,7 @@ public class TaskPanel extends JPanel {
 
         c.gridx = 3;
         c.weightx = 0.2;
-        var deadlineLabel = new JLabel(Task.TASK_DATE_FORMAT.format(task.deadline));
+        var deadlineLabel = new JLabel(Task.TASK_DATE_FORMAT.format(task.deadline.getTime()));
         add(deadlineLabel, c);
 
         c.gridx = 4;
