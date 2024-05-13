@@ -37,11 +37,12 @@ public class Controller {
     }
 
     public void verify(String username) {
-        if (model.verifyUser(username)) {
-            view.loadMainScreen();
-        } else {
-            view.promptUser();
-        }
+        model.verifyUser(username);
+        // if (model.verifyUser(username)) {
+        // view.loadMainScreen();
+        // } else {
+        // view.promptUser();
+        // }
     }
 
     public void executeCommand(AbstractCommand cmd) {

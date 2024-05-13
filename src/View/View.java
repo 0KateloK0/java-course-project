@@ -84,6 +84,7 @@ public class View extends JFrame implements WindowListener {
                     public void run() {
                         var view = new View(controller);
                         controller.setView(view);
+                        // view.updateTasks(controller.model.getTasks());
                     }
                 });
     }
@@ -97,11 +98,13 @@ public class View extends JFrame implements WindowListener {
 
     @Override
     public void windowClosed(WindowEvent e) {
+        controller.model.serverConnection.close();
         System.exit(0);
     }
 
     @Override
     public void windowClosing(WindowEvent e) {
+        controller.model.serverConnection.close();
         System.exit(0);
     }
 

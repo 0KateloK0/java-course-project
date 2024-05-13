@@ -1,5 +1,6 @@
 package View;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -17,6 +18,7 @@ public class UserPrompt extends JPanel implements ActionListener {
     boolean isRepeat = false;
     JTextField usernameInput;
     Controller controller;
+    JLabel errorLabel;
 
     UserPrompt(Controller controller) {
         this.controller = controller;
@@ -26,7 +28,11 @@ public class UserPrompt extends JPanel implements ActionListener {
 
         var usernameLabel = new JLabel("Введите ваше имя пользователя");
 
-        usernameInput = new JTextField();
+        errorLabel = new JLabel();
+        errorLabel.setVisible(false);
+        errorLabel.setForeground(Color.RED);
+
+        usernameInput = new JTextField("Artem");
 
         var submitButton = new JButton("Войти");
         submitButton.addActionListener(this);
@@ -38,14 +44,31 @@ public class UserPrompt extends JPanel implements ActionListener {
         c.weightx = 1;
         c.weighty = 1;
         add(usernameLabel, c);
+        add(errorLabel, c);
         add(usernameInput, c);
         add(submitButton, c);
 
         setVisible(true);
     }
 
+    private void showError(String errorText) {
+        errorLabel.setText(errorText);
+        errorLabel.setVisible(true);
+    }
+
+    private void hideError() {
+        errorLabel.setText("");
+        errorLabel.setVisible(false);
+    }
+
     public void actionPerformed(ActionEvent ignored) {
-        controller.verify(getUsername());
+        var username = getUsername();
+        if (username.isEmpty()) {
+            showError("Ник не может быть пустым");
+        } else {
+            hideError();
+            controller.verify(getUsername());
+        }
     }
 
     public void setIsRepeat(boolean value) {
