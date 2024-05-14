@@ -10,18 +10,20 @@ import javax.swing.SwingUtilities;
 import Common.Task;
 import Common.Commands.AbstractCommand;
 
-public class Controller {
+public class Controller implements Runnable {
     public Model model;
     public View view;
-    public Stack<AbstractCommand> commandHistory;
-    public Stack<AbstractCommand> undoHistory;
+    public Stack<AbstractCommand> commandHistory = new Stack<>();
+    public Stack<AbstractCommand> undoHistory = new Stack<>();
 
     public Controller() {
-        commandHistory = new Stack<>();
-        undoHistory = new Stack<>();
-        // КОСТЫЛЬ, устанавливает view для контроллера
-        View.createAndShowGUI(this);
-        // model = new Model(this, view);
+        SwingUtilities.invokeLater(this);
+    }
+
+    @Override
+    public void run() {
+        view = new View(this);
+        model = new Model(this, view);
     }
 
     public void setView(View view) {
@@ -35,16 +37,10 @@ public class Controller {
                 view.promptUser();
             }
         });
-
     }
 
     public void verify(String username) {
         model.verifyUser(username);
-        // if (model.verifyUser(username)) {
-        // view.loadMainScreen();
-        // } else {
-        // view.promptUser();
-        // }
     }
 
     public void executeCommand(AbstractCommand cmd) {
@@ -79,5 +75,10 @@ public class Controller {
 
     public void changeTask(Task oldTask, Task newTask) {
         model.changeTask(oldTask.id, newTask);
+    }
+
+    public void openEditManager() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'openEditManager'");
     }
 }

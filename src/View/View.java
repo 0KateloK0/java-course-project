@@ -9,7 +9,6 @@ import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
@@ -77,17 +76,6 @@ public class View extends JFrame implements WindowListener {
 
     public void updateTasks(TaskMap tasks) {
         taskManager.updateTasks(tasks);
-    }
-
-    public static void createAndShowGUI(Controller controller) {
-        SwingUtilities.invokeLater(
-                new Runnable() {
-                    public void run() {
-                        var view = new View(controller);
-                        controller.setView(view);
-                        // view.updateTasks(controller.model.getTasks());
-                    }
-                });
     }
 
     @Override
