@@ -23,6 +23,7 @@ public class View extends JFrame implements WindowListener {
     private JPanel container;
     private UserPrompt userPrompt;
     private TaskManager taskManager;
+    private StatePanel statePanel;
     private static String USER_PROMPT_CARD = "user prompt card";
     private static String TAKS_INTERFACE_CARD = "task interface card";
     public static Font FONT = new Font(Font.MONOSPACED, Font.PLAIN, 20);
@@ -47,17 +48,17 @@ public class View extends JFrame implements WindowListener {
         setPreferredSize(new Dimension(1920, 1080));
         setTitle("Todo");
         setVisible(true);
-
-        container = new JPanel(new CardLayout());
-
         addWindowListener(this);
 
+        container = new JPanel(new CardLayout());
+        statePanel = new StatePanel(false, null);
         userPrompt = new UserPrompt(controller);
 
         // taskManager = new TaskManager(controller);
 
         container.add(userPrompt, USER_PROMPT_CARD);
         // container.add(taskManager, TAKS_INTERFACE_CARD);
+        add(statePanel, BorderLayout.NORTH);
         add(container, BorderLayout.CENTER);
         pack();
     }
@@ -98,13 +99,13 @@ public class View extends JFrame implements WindowListener {
 
     @Override
     public void windowClosed(WindowEvent e) {
-        controller.model.serverConnection.close();
+        // controller.model.serverConnection.close();
         System.exit(0);
     }
 
     @Override
     public void windowClosing(WindowEvent e) {
-        controller.model.serverConnection.close();
+        // controller.model.serverConnection.close();
         System.exit(0);
     }
 
