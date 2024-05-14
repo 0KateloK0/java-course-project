@@ -3,20 +3,22 @@ package Controller;
 import Model.Model;
 import View.View;
 
+import java.util.Stack;
+
 import javax.swing.SwingUtilities;
 
 import Common.Task;
 import Common.Commands.AbstractCommand;
-import Common.Commands.CommandHistory;
 
 public class Controller {
     public Model model;
     public View view;
-    public CommandHistory commandHistory;
+    public Stack<AbstractCommand> commandHistory;
+    public Stack<AbstractCommand> undoHistory;
 
     public Controller() {
-        commandHistory = new CommandHistory();
-
+        commandHistory = new Stack<>();
+        undoHistory = new Stack<>();
         // КОСТЫЛЬ, устанавливает view для контроллера
         View.createAndShowGUI(this);
         // model = new Model(this, view);
@@ -47,12 +49,28 @@ public class Controller {
 
     public void executeCommand(AbstractCommand cmd) {
         commandHistory.add(cmd);
+        if (!undoHistory.empty()) {
+            undoHistory.clear();
+        }
         cmd.execute();
+    }
+
+    public void undoCommand() {
+        if (!commandHistory.isEmpty()) {
+            var cmd = commandHistory.pop();
+            cmd.undo();
+            undoHistory.add(cmd);
+        }
+    }
+
+    public void redoCommand() {
+        if (!undoHistory.empty()) {
+            executeCommand(undoHistory.pop());
+        }
     }
 
     public void addTask(Task task) {
         model.addTask(task);
-
     }
 
     public void deleteTask(int index) {
