@@ -1,16 +1,12 @@
 package Model;
 
-import Model.Loader.FileLoader;
-// import Model.Loader.NetLoader;
-import Model.Loader.Parser;
-import Model.NetModel.ServerConnection;
 import Common.Task;
 import Common.TaskMap;
 import Common.User;
 import Controller.Controller;
 
+import java.io.Closeable;
 import java.io.IOException;
-import java.net.*;
 import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
 
@@ -18,126 +14,165 @@ import javax.swing.SwingWorker;
 
 import View.View;
 
-public class Model {
+public class Model implements Closeable {
     TaskMap tasks;
     Controller controller;
     View view;
-    public ServerConnection serverConnection;
+    ServerConnection serverConnection;
     User activeUser;
 
+    private abstract class State {
+        public abstract void addTask(Task task);
+
+        public abstract void deleteTask(int index);
+
+        public abstract void changeTask(int index, Task newTask);
+
+        public abstract void verifyUser(String uncheckedUser);
+    }
+
+    private class OnlineState extends State {
+        @Override
+        public void addTask(Task task) {
+            try {
+                serverConnection.createTask(task);
+                tasks.put(task.id, task);
+            } catch (Exception ignored) {
+            }
+        }
+
+        @Override
+        public void deleteTask(int index) {
+            try {
+                serverConnection.deleteTask(index);
+                tasks.remove(index);
+            } catch (Exception ignored) {
+            }
+        }
+
+        @Override
+        public void changeTask(int index, Task newTask) {
+            try {
+                serverConnection.updateTask(index, newTask);
+                tasks.put(index, newTask);
+            } catch (Exception ignored) {
+            }
+        }
+
+        @Override
+        public void verifyUser(String uncheckedUser) {
+            (new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() {
+                    try {
+                        return serverConnection.checkUser(uncheckedUser);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return true;
+                    }
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        if (get()) {
+                            view.loadMainScreen();
+                        } else {
+                            view.promptUser();
+                        }
+                    } catch (Exception ignore) {
+                        view.promptUser();
+                    }
+                }
+            }).execute();
+        }
+    }
+
+    private class OfflineState extends State {
+        @Override
+        public void addTask(Task task) {
+            tasks.put(task.id, task);
+        }
+
+        @Override
+        public void deleteTask(int index) {
+            tasks.remove(index);
+        }
+
+        @Override
+        public void changeTask(int index, Task newTask) {
+            tasks.put(index, newTask);
+        }
+
+        @Override
+        public void verifyUser(String uncheckedUser) {
+            // TODO: check cache
+        }
+
+    }
+
+    State state;
+
     public Model(Controller controller, View view) {
-        this.tasks = new TaskMap();
+        tasks = new TaskMap();
 
         this.controller = controller;
         this.view = view;
-
-        try {
-            var thr = new SwingWorker<ServerConnection, Void>() {
-                @Override
-                protected ServerConnection doInBackground() {
-                    try {
-                        return new ServerConnection();
-                    } catch (UnknownHostException e) {
-                        e.printStackTrace();
-                        return null;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
+        class ServerConnectionThread extends SwingWorker<ServerConnection, Void> {
+            @Override
+            protected ServerConnection doInBackground() {
+                try {
+                    return new ServerConnection();
+                } catch (IOException e) {
+                    return null;
                 }
-            };
+            }
 
-            // var thr2 = new SwingWorker<TaskMap, Void>() {
-            // @Override
-            // protected TaskMap doInBackground() {
-            // var loader = new FileLoader("db.json");
-            // return loader.loadTasks(new User());
-            // }
-            // };
-
-            thr.execute();
-            // thr2.execute();
-            this.serverConnection = thr.get();
-            // this.tasks.putAll(thr2.get());
-            // view.updateTasks(this.tasks);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            @Override
+            public void done() {
+                try {
+                    serverConnection = get();
+                    setState(serverConnection == null ? new OfflineState() : new OnlineState());
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace(); // TODO: добавить повторную попытку
+                }
+            }
         }
+        var serverConnectionThread = new ServerConnectionThread();
+        serverConnectionThread.execute();
+    }
+
+    private void setState(State newState) {
+        state = newState;
     }
 
     public void addTask(Task task) {
-        this.tasks.put(task.id, task);
-        // try {
-        // this.serverConnection.createNewTask(task);
-        // } catch (IOException e) {
-        // }
-
-        this.view.updateTasks(tasks);
+        state.addTask(task);
+        view.updateTasks(tasks);
     }
 
     public void deleteTask(int index) {
-        this.tasks.remove(index);
-        this.view.updateTasks(tasks);
+        state.deleteTask(index);
+        view.updateTasks(tasks);
     }
 
     public void changeTask(int index, Task newTask) {
-        this.tasks.put(index, newTask);
-        this.view.updateTasks(tasks);
+        state.changeTask(index, newTask);
+        view.updateTasks(tasks);
     }
 
     public TaskMap getTasks() {
-        return this.tasks;
+        return tasks;
     }
 
     public void verifyUser(String uncheckedUser) {
-        var thr = new SwingWorker<Boolean, Void>() {
-            @Override
-            protected Boolean doInBackground() {
-                try {
-                    return serverConnection.checkUser(uncheckedUser);
-                } catch (IOException e) {
-                    System.out.println("IO");
-                    e.printStackTrace();
-                    return true;
-                } catch (NullPointerException e) {
-                    System.out.println("Null");
-                    return true;
-                }
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get()) {
-                        view.loadMainScreen();
-                    } else {
-                        view.promptUser();
-                    }
-                } catch (Exception ignore) {
-                    view.promptUser();
-                }
-            }
-        };
-        thr.execute();
-
-        try {
-            if (thr.get()) {
-                view.loadMainScreen();
-            } else {
-                view.promptUser();
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        state.verifyUser(uncheckedUser);
     }
 
     public void loadUser(String checkedUser) {
         try {
             var p = new Parser();
-            p.parse(this.serverConnection.getUserInfo(checkedUser));
+            p.parse(serverConnection.readUserTasks(checkedUser));
             tasks.putAll(p.tasks);
         } catch (IOException e) {
             return;
@@ -145,4 +180,16 @@ public class Model {
             // TODO: попытаться вновь
         }
     }
+
+    public void close() {
+        serverConnection.close();
+    }
+
+    // @Override
+    // public void finalize() throws Exception {
+    // if (!serverConnection.isClosed()) {
+    // serverConnection.close();
+    // throw new Exception("Model has not been closed");
+    // }
+    // }
 }

@@ -1,4 +1,4 @@
-package Model.Loader;
+package Model;
 
 import org.json.*;
 
@@ -7,12 +7,12 @@ import java.util.HashMap;
 import Common.Task;
 import Common.TaskMap;
 import Common.User;
-import Common.TaskMap.TaskNode;
+// import Common.TaskMap.TaskNode;
 
 public class Parser {
     // HashMap<Integer, Task> tasks;
-    TaskMap tasks;
-    HashMap<Integer, User> users;
+    public TaskMap tasks;
+    public HashMap<Integer, User> users;
 
     public void parse(String data) throws ParseException {
         var obj = new JSONObject(data);

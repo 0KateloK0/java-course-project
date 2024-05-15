@@ -1,11 +1,12 @@
 import java.util.HashSet;
+
+import Model.FileLoader;
+
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
-// import java.net.http.;
 
 public class Server {
-    // private Socket socket = null;
     private ServerSocket server = null;
 
     private HashSet<String> users = new HashSet<>();
@@ -49,13 +50,16 @@ public class Server {
 
         public void parseRequest(ArrayList<String> request) {
             try {
-                System.out.println(request.get(0).contains("GET"));
                 if (request.get(0).contains("GET")) {
-                    System.out.println(request.get(0).contains("/user/"));
-                    if (request.get(0).contains("/user/")) {
-                        System.out.println(request.get(0).split("/"));
-                        out.writeUTF(
-                                (users.contains(request.get(0).split("/")[2]) ? "true" : "false") + "\n");
+                    String path = request.get(0).split(" ")[1];
+                    var route = path.split("/"); // всегда 0 элемент является пустой строкой
+                    if (route[1].equals("user")) {
+                        if (route[2].equals("tasks")) {
+
+                        } else {
+                            out.writeUTF(
+                                    (users.contains(request.get(0).split("/")[2]) ? "true" : "false") + "\n");
+                        }
                         return;
                     }
                 } else {
@@ -71,8 +75,10 @@ public class Server {
         }
     }
 
-    Server(int port) {
-        users.add("Artem");
+    Server(int port, String cwd) {
+        // users.add("Artem");
+        var fileLoader = new FileLoader(cwd + "/users.json");
+
         try {
             server = new ServerSocket(port);
             while (true) {
@@ -87,7 +93,6 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        var server = new Server(4444);
-
+        new Server(4444, "../serverDB");
     }
 }

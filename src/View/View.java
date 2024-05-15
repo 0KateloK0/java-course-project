@@ -4,8 +4,8 @@ import java.awt.Font;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -17,7 +17,7 @@ import java.util.Enumeration;
 import Common.TaskMap;
 import Controller.Controller;
 
-public class View extends JFrame implements WindowListener {
+public class View extends JFrame {
     Controller controller;
     private JPanel container;
     private UserPrompt userPrompt;
@@ -47,7 +47,13 @@ public class View extends JFrame implements WindowListener {
         setPreferredSize(new Dimension(1920, 1080));
         setTitle("Todo");
         setVisible(true);
-        addWindowListener(this);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // controller.model.serverConnection.close();
+                System.exit(0);
+            }
+        });
 
         container = new JPanel(new CardLayout());
         statePanel = new StatePanel(false, null);
@@ -76,52 +82,5 @@ public class View extends JFrame implements WindowListener {
 
     public void updateTasks(TaskMap tasks) {
         taskManager.updateTasks(tasks);
-    }
-
-    @Override
-    public void windowActivated(WindowEvent e) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'windowActivated'");
-    }
-
-    @Override
-    public void windowClosed(WindowEvent e) {
-        // controller.model.serverConnection.close();
-        System.exit(0);
-    }
-
-    @Override
-    public void windowClosing(WindowEvent e) {
-        // controller.model.serverConnection.close();
-        System.exit(0);
-    }
-
-    @Override
-    public void windowDeactivated(WindowEvent e) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'windowDeactivated'");
-    }
-
-    @Override
-    public void windowDeiconified(WindowEvent e) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'windowDeiconified'");
-    }
-
-    @Override
-    public void windowIconified(WindowEvent e) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'windowIconified'");
-    }
-
-    @Override
-    public void windowOpened(WindowEvent e) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'windowOpened'");
     }
 }

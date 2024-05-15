@@ -1,16 +1,14 @@
-package Model.Loader;
+package Model;
 
-// import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.ParseException;
 
-import Common.Task;
+import Common.TaskMap;
 import Common.User;
 
-public class FileLoader implements LoaderInterface {
+public class FileLoader {
     private String filename;
     private Parser parser;
 
@@ -41,11 +39,7 @@ public class FileLoader implements LoaderInterface {
         }
     }
 
-    public HashMap<Integer, Task> loadTasks() {
+    public TaskMap loadTasks(User user) {
         return parser.tasks;
-    }
-
-    public HashMap<Integer, User> loadUsers() {
-        return parser.users;
     }
 }

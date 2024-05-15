@@ -1,20 +1,15 @@
-package Model.NetModel;
+package Model;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
+import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
 
-import org.json.JSONString;
-
 import Common.Task;
 
-// import javax.swing.SwingWorker;
-
-public class ServerConnection {
+public class ServerConnection implements Closeable {
     Socket socket;
     DataOutputStream out;
     BufferedReader in;
@@ -37,33 +32,39 @@ public class ServerConnection {
 
     }
 
+    public boolean isClosed() {
+        return socket.isClosed();
+    }
+
     public void send(String data) throws IOException {
         System.out.println(data);
-        // var out = new DataOutputStream(sock.getOutputStream());
-        out.writeUTF(data);
-        // out.close();
+        out.writeUTF(data + "\nOver\n");
     }
 
     public String receive() throws IOException {
-        // var in = new DataInputStream(
-        // new BufferedInputStream(sock.getInputStream()));
         var res = in.readLine();
-        System.out.println(res);
-        // in.close();
         return res;
     }
 
-    public void createNewTask(Task task) throws IOException {
-        send("POST /task\n" + task.toJSONString() + "\nOver\n");
+    public void createTask(Task task) throws IOException {
+        send("POST /task\n" + task.toJSONString());
+    }
+
+    public void deleteTask(int index) throws IOException {
+        send("DELETE /task/" + String.valueOf(index));
+    }
+
+    public void updateTask(int index, Task newTask) throws IOException {
+        send("PUT /task/" + String.valueOf(index));
     }
 
     public boolean checkUser(String uncheckedUser) throws IOException {
-        send("GET /user/" + uncheckedUser + "\nOver\n");
+        send("GET /user/" + uncheckedUser);
         return receive().contains("true");
     }
 
-    public String getUserInfo(String user) throws IOException {
-        send("GET /user_info/" + user + "\nOver\n");
+    public String readUserTasks(String user) throws IOException {
+        send("GET /user/tasks/" + user);
         return receive();
     }
 }

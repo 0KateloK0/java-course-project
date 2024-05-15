@@ -2,13 +2,11 @@ package View;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.LayoutManager;
 
 import javax.swing.JPanel;
 
 import Common.TaskMap;
 import Controller.Controller;
-import Model.Model;
 
 public class ComplexTaskPanel extends JPanel {
     public ComplexTaskPanel(Controller controller, TaskMap tasks, TaskMap.TaskNode node) {
