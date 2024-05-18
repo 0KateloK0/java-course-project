@@ -26,6 +26,16 @@ public class View extends JFrame {
     private static String USER_PROMPT_CARD = "user prompt card";
     private static String TAKS_INTERFACE_CARD = "task interface card";
     public static Font FONT = new Font(Font.MONOSPACED, Font.PLAIN, 20);
+    private boolean isOnline = false;
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+    public void setOnline(boolean isOnline) {
+        this.isOnline = isOnline;
+        statePanel.setOnline(isOnline);
+    }
 
     public View(Controller controller) {
         this.controller = controller;

@@ -8,11 +8,11 @@ import java.text.ParseException;
 import Common.TaskMap;
 import Common.User;
 
-public class FileLoader {
+public class FileSystem {
     private String filename;
     private Parser parser;
 
-    public FileLoader(String filename) {
+    public FileSystem(String filename) {
         this.filename = filename;
         this.parser = new Parser();
         this.loadFile();

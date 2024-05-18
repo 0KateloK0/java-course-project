@@ -12,6 +12,14 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.SwingWorker;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileWriter;
+
 import View.View;
 
 public class Model implements Closeable {
@@ -29,6 +37,8 @@ public class Model implements Closeable {
         public abstract void changeTask(int index, Task newTask);
 
         public abstract void verifyUser(String uncheckedUser);
+
+        public abstract void close();
     }
 
     private class OnlineState extends State {
@@ -86,6 +96,11 @@ public class Model implements Closeable {
                 }
             }).execute();
         }
+
+        @Override
+        public void close() {
+            serverConnection.close();
+        }
     }
 
     private class OfflineState extends State {
@@ -106,7 +121,97 @@ public class Model implements Closeable {
 
         @Override
         public void verifyUser(String uncheckedUser) {
-            // TODO: check cache
+            var cacheFile = new File("./clientDB/cache.json");
+            try {
+                if (cacheFile.createNewFile()) {
+                    // заполнить его нужной информацией
+                    var obj = new JSONObject();
+                    obj.put("users", new JSONArray());
+                    var fw = new FileWriter(cacheFile);
+                    fw.write(obj.toString());
+                    fw.close();
+                } else {
+                    var cacheScanner = new Scanner(cacheFile);
+                    String cache = "";
+                    while (cacheScanner.hasNextLine()) {
+                        String line = cacheScanner.nextLine();
+                        cache += line;
+                    }
+
+                    cacheScanner.close();
+
+                    var obj = new JSONObject(cache);
+
+                    var usersJSON = obj.getJSONArray("users");
+                    for (int i = 0; i < usersJSON.length(); ++i) {
+                        var user = new User().fromJSONObject(usersJSON.getJSONObject(i));
+                        if (user.name.equals(uncheckedUser)) {
+                            var userTasks = new TaskMap();
+                            var userTasksFile = new File("./clientDB/" + uncheckedUser + ".json");
+                            if (userTasksFile.createNewFile()) {
+                                var obj2 = new JSONObject();
+                                obj2.put("tasks", new JSONArray());
+                                var fw = new FileWriter(userTasksFile);
+                                fw.write(obj2.toString());
+                                fw.close();
+                            } else {
+                                var userTasksInput = new Scanner(userTasksFile);
+                                String userTasksCache = "";
+                                while (userTasksInput.hasNextLine()) {
+                                    String line = userTasksInput.nextLine();
+                                    userTasksCache += line;
+                                }
+                                var userTasksObj = new JSONObject(userTasksCache);
+                                var tasksJSON = userTasksObj.getJSONArray("tasks");
+                                for (int j = 0; j < tasksJSON.length(); ++j) {
+                                    var task = new Task().fromJSONObject(tasksJSON.getJSONObject(j));
+                                    userTasks.put(task.id, task);
+                                }
+
+                                userTasksInput.close();
+                            }
+
+                            javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    view.loadMainScreen();
+                                    view.updateTasks(userTasks);
+                                }
+                            });
+                            return;
+                        }
+                    }
+                }
+            } catch (ParseException | JSONException e) {
+                // пересоздать файл
+                cacheFile.delete();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            view.promptUser();
+        }
+
+        @Override
+        public void close() {
+            var userTasksFile = new File("./clientDB/" + activeUser + ".json");
+
+            var obj = new JSONObject();
+            var array = new JSONArray();
+
+            try {
+                FileWriter fw;
+                fw = new FileWriter(userTasksFile);
+                for (var task : tasks.values()) {
+                    array.put(task.toJSONString());
+                }
+                obj.put("tasks", array);
+                fw.write(obj.toString());
+                fw.close();
+            } catch (IOException e) {
+
+                e.printStackTrace();
+            }
+
         }
 
     }
@@ -132,18 +237,23 @@ public class Model implements Closeable {
             public void done() {
                 try {
                     serverConnection = get();
-                    setState(serverConnection == null ? new OfflineState() : new OnlineState());
+                    // тернарный оператор здесь выдаст ошибку типизации
+                    if (serverConnection == null)
+                        setState(new OfflineState());
+                    else
+                        setState(new OnlineState());
                 } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace(); // TODO: добавить повторную попытку
+                    e.printStackTrace();
+                    (new ServerConnectionThread()).execute();
                 }
             }
         }
-        var serverConnectionThread = new ServerConnectionThread();
-        serverConnectionThread.execute();
+        (new ServerConnectionThread()).execute();
     }
 
     private void setState(State newState) {
         state = newState;
+        view.setOnline(state instanceof OnlineState);
     }
 
     public void addTask(Task task) {
@@ -182,14 +292,6 @@ public class Model implements Closeable {
     }
 
     public void close() {
-        serverConnection.close();
+        state.close();
     }
-
-    // @Override
-    // public void finalize() throws Exception {
-    // if (!serverConnection.isClosed()) {
-    // serverConnection.close();
-    // throw new Exception("Model has not been closed");
-    // }
-    // }
 }
