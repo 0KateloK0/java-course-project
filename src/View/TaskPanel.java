@@ -17,6 +17,7 @@ import Common.TaskState;
 import Common.Commands.ChangeTaskCommand;
 import Common.Commands.DeleteTaskCommand;
 import Controller.Controller;
+import Model.Model;
 
 public class TaskPanel extends JPanel implements ActionListener {
     public static final Integer TASK_PANEL_HEIGHT = 100;
@@ -59,7 +60,7 @@ public class TaskPanel extends JPanel implements ActionListener {
 
         c.gridx = 3;
         c.weightx = 0.2;
-        var deadlineLabel = new JLabel(Task.TASK_DATE_FORMAT.format(task.deadline.getTime()));
+        var deadlineLabel = new JLabel(Model.DATE_FORMAT.format(task.deadline.getTime()));
         add(deadlineLabel, c);
 
         c.gridx = 4;

@@ -7,15 +7,18 @@ import Controller.Controller;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.concurrent.ExecutionException;
+import java.text.SimpleDateFormat;
 
 import javax.swing.SwingWorker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
+import java.util.Date;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileWriter;
@@ -28,6 +31,14 @@ public class Model implements Closeable {
     View view;
     ServerConnection serverConnection;
     User activeUser;
+
+    public User getActiveUser() {
+        return activeUser;
+    }
+
+    public void setActiveUser(User activeUser) {
+        this.activeUser = activeUser;
+    }
 
     private abstract class State {
         public abstract void addTask(Task task);
@@ -71,30 +82,20 @@ public class Model implements Closeable {
 
         @Override
         public void verifyUser(String uncheckedUser) {
-            (new SwingWorker<Boolean, Void>() {
-                @Override
-                protected Boolean doInBackground() {
+            new Thread() {
+                public void run() {
                     try {
-                        return serverConnection.checkUser(uncheckedUser);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return true;
-                    }
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        if (get()) {
+                        if (serverConnection.checkUser(uncheckedUser)) {
                             view.loadMainScreen();
+                            serverConnection.getUser(uncheckedUser);
                         } else {
                             view.promptUser();
                         }
-                    } catch (Exception ignore) {
+                    } catch (Exception e) {
                         view.promptUser();
                     }
                 }
-            }).execute();
+            }.start();
         }
 
         @Override
@@ -146,13 +147,20 @@ public class Model implements Closeable {
                     for (int i = 0; i < usersJSON.length(); ++i) {
                         var user = new User().fromJSONObject(usersJSON.getJSONObject(i));
                         if (user.name.equals(uncheckedUser)) {
+                            setActiveUser(user);
                             var userTasks = new TaskMap();
-                            var userTasksFile = new File("./clientDB/" + uncheckedUser + ".json");
+                            var userTasksFile = new File("./clientDB/" + user.name + ".json");
                             if (userTasksFile.createNewFile()) {
-                                var obj2 = new JSONObject();
-                                obj2.put("tasks", new JSONArray());
                                 var fw = new FileWriter(userTasksFile);
-                                fw.write(obj2.toString());
+                                fw.write(new JSONStringer()
+                                        .object()
+                                        .key("tasks").array().endArray()
+                                        .key("metadata")
+                                        .object()
+                                        .key("lastChanged").value(DATE_FORMAT.format(new Date()))
+                                        .endObject()
+                                        .endObject()
+                                        .toString());
                                 fw.close();
                             } else {
                                 var userTasksInput = new Scanner(userTasksFile);
@@ -193,62 +201,43 @@ public class Model implements Closeable {
 
         @Override
         public void close() {
-            var userTasksFile = new File("./clientDB/" + activeUser + ".json");
-
-            var obj = new JSONObject();
-            var array = new JSONArray();
-
+            var userTasksFile = new File("./clientDB/" + activeUser.name + ".json");
             try {
-                FileWriter fw;
-                fw = new FileWriter(userTasksFile);
+                var fw = new FileWriter(userTasksFile);
+                var obj = new JSONStringer()
+                        .object()
+                        .key("tasks")
+                        .array();
                 for (var task : tasks.values()) {
-                    array.put(task.toJSONString());
+                    obj.value(task.toJSONObject());
                 }
-                obj.put("tasks", array);
+                obj.endArray().endObject();
                 fw.write(obj.toString());
                 fw.close();
             } catch (IOException e) {
-
                 e.printStackTrace();
             }
-
         }
-
     }
 
     State state;
+    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("y MM dd HH:mm");
 
     public Model(Controller controller, View view) {
         tasks = new TaskMap();
 
         this.controller = controller;
         this.view = view;
-        class ServerConnectionThread extends SwingWorker<ServerConnection, Void> {
-            @Override
-            protected ServerConnection doInBackground() {
+        new Thread() {
+            public void run() {
                 try {
-                    return new ServerConnection();
+                    serverConnection = new ServerConnection();
+                    setState(new OnlineState());
                 } catch (IOException e) {
-                    return null;
+                    setState(new OfflineState());
                 }
             }
-
-            @Override
-            public void done() {
-                try {
-                    serverConnection = get();
-                    // тернарный оператор здесь выдаст ошибку типизации
-                    if (serverConnection == null)
-                        setState(new OfflineState());
-                    else
-                        setState(new OnlineState());
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    (new ServerConnectionThread()).execute();
-                }
-            }
-        }
-        (new ServerConnectionThread()).execute();
+        }.start();
     }
 
     private void setState(State newState) {

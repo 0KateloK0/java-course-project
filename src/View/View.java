@@ -61,6 +61,7 @@ public class View extends JFrame {
             @Override
             public void windowClosing(WindowEvent e) {
                 // controller.model.serverConnection.close();
+                controller.close();
                 System.exit(0);
             }
         });
@@ -92,5 +93,9 @@ public class View extends JFrame {
 
     public void updateTasks(TaskMap tasks) {
         taskManager.updateTasks(tasks);
+    }
+
+    public void showError(String error) {
+
     }
 }

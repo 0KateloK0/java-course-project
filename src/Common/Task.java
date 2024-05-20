@@ -1,13 +1,13 @@
 package Common;
 
 import java.util.GregorianCalendar;
-import java.text.SimpleDateFormat;
-import java.text.DateFormat;
 import java.text.ParseException;
 
 import org.json.JSONObject;
 import org.json.JSONString;
 import org.json.JSONStringer;
+
+import Model.Model;
 
 public class Task implements JSONifiable, JSONString, Cloneable {
     private static Integer lastId = 1;
@@ -16,8 +16,6 @@ public class Task implements JSONifiable, JSONString, Cloneable {
     public String description = "";
     public GregorianCalendar deadline;
     public TaskState state = TaskState.DUE;
-
-    public static final DateFormat TASK_DATE_FORMAT = new SimpleDateFormat("y MM dd HH:mm");
 
     // public JSONObject toJSONObject() {
 
@@ -54,7 +52,7 @@ public class Task implements JSONifiable, JSONString, Cloneable {
         this.description = obj.getString("description");
         var date_string = obj.getString("deadline");
         var cal = new GregorianCalendar();
-        cal.setTime(TASK_DATE_FORMAT.parse(date_string));
+        cal.setTime(Model.DATE_FORMAT.parse(date_string));
         this.deadline = cal;
         this.state = obj.getEnum(TaskState.class, "state");
         return this;
@@ -67,9 +65,15 @@ public class Task implements JSONifiable, JSONString, Cloneable {
                 .key("id").value(id)
                 .key("name").value(name)
                 .key("description").value(description)
-                .key("deadline").value(TASK_DATE_FORMAT.format(deadline))
+                .key("deadline").value(Model.DATE_FORMAT.format(deadline.getTime()))
                 .key("state").value(state)
                 .endObject()
                 .toString();
+    }
+
+    public JSONObject toJSONObject() {
+        var obj = new JSONObject(this, "id", "name", "description", "state");
+        obj.put("deadline", Model.DATE_FORMAT.format(deadline.getTime()));
+        return obj;
     }
 }

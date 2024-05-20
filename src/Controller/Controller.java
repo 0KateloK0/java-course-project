@@ -3,6 +3,7 @@ package Controller;
 import Model.Model;
 import View.View;
 
+import java.io.Closeable;
 import java.util.Stack;
 
 import javax.swing.SwingUtilities;
@@ -10,7 +11,7 @@ import javax.swing.SwingUtilities;
 import Common.Task;
 import Common.Commands.AbstractCommand;
 
-public class Controller implements Runnable {
+public class Controller implements Runnable, Closeable {
     public Model model;
     public View view;
     public Stack<AbstractCommand> commandHistory = new Stack<>();
@@ -80,5 +81,9 @@ public class Controller implements Runnable {
     public void openEditManager() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'openEditManager'");
+    }
+
+    public void close() {
+        model.close();
     }
 }

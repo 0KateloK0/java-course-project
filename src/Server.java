@@ -1,10 +1,12 @@
 import java.util.HashSet;
+import java.util.function.Function;
 
-import Model.FileLoader;
+import Model.FileSystem;
 
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Server {
     private ServerSocket server = null;
@@ -62,7 +64,7 @@ public class Server {
                         }
                         return;
                     }
-                } else {
+                } else if (request.get(0).contains("POST")) {
 
                 }
 
@@ -75,9 +77,30 @@ public class Server {
         }
     }
 
+    // class Parser {
+    // private HashMap<String, Function<String, Void>> routes = new HashMap<>();
+
+    // public void addRoute(String route, Function<String, Void> action) {
+    // routes.put(route, action);
+    // }
+
+    // public void parse(String request) {
+    // var pos = request.indexOf(" ");
+    // var method = request.substring(0, pos);
+    // var route = request.substring(pos + 1, request.indexOf("\n", pos + 1));
+    // routes.get(route).apply(request);
+    // }
+
+    // public Parser() {
+    // }
+    // }
+
     Server(int port, String cwd) {
-        // users.add("Artem");
-        var fileLoader = new FileLoader(cwd + "/users.json");
+        // var parser = new Parser();
+        // parser.addRoute("/user", null);
+
+        users.add("Artem");
+        // var fileLoader = new FileLoader(cwd + "/users.json");
 
         try {
             server = new ServerSocket(port);

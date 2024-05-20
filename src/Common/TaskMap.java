@@ -1,7 +1,7 @@
 package Common;
 
 import java.util.ArrayList;
-import java.util.HashMap;;
+import java.util.HashMap;
 
 public class TaskMap extends HashMap<Integer, Task> {
     TaskNode root;

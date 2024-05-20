@@ -59,6 +59,7 @@ public class ServerConnection implements Closeable {
     }
 
     public boolean checkUser(String uncheckedUser) throws IOException {
+        // TODO: переделать это в аутентификацию
         send("GET /user/" + uncheckedUser);
         return receive().contains("true");
     }
@@ -66,5 +67,10 @@ public class ServerConnection implements Closeable {
     public String readUserTasks(String user) throws IOException {
         send("GET /user/tasks/" + user);
         return receive();
+    }
+
+    public void getUser(String user) throws IOException {
+        send("GET /user/" + user);
+
     }
 }
