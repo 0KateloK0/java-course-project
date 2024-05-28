@@ -4,7 +4,6 @@ import Common.FileManager;
 import Common.Task;
 import Common.TaskMap;
 import Common.User;
-import Controller.Controller;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -121,7 +120,8 @@ public class Model implements Closeable {
         @Override
         public boolean verifyUser(String uncheckedUser) {
             var cacheFile = new File("./clientDB/cache.json");
-            var userMap = fileManager.loadCacheFile(cacheFile);
+            var cachedData = fileManager.loadCacheFile(cacheFile);
+            var userMap = cachedData.userMap;
             for (var user : userMap.values()) {
                 if (user.name.equals(uncheckedUser)) {
                     return true;
@@ -170,7 +170,9 @@ public class Model implements Closeable {
 
         @Override
         public TaskMap loadActiveUserTasks() {
-            return fileManager.loadUserFile(activeUser);
+            var cachedUserData = fileManager.loadUserFile(activeUser);
+            ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(cachedUserData.lastTaskId);
+            return cachedUserData.tasks;
         }
     }
 
