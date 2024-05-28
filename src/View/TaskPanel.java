@@ -13,7 +13,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import Common.Task;
-import Common.TaskState;
 import Common.Commands.ChangeTaskCommand;
 import Common.Commands.DeleteTaskCommand;
 import Controller.Controller;
@@ -85,7 +84,7 @@ public class TaskPanel extends JPanel implements ActionListener {
         switch (e.getActionCommand()) {
             case CHECK_ACTION_COMMAND:
                 var newTask = new Task(task);
-                newTask.state = TaskState.DONE;
+                newTask.state = Task.State.DONE;
                 controller.executeCommand(new ChangeTaskCommand(controller, task, newTask));
                 break;
             case EDIT_ACTION_COMMAND:

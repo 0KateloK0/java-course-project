@@ -11,7 +11,6 @@ import javax.swing.JPanel;
 
 import Common.Task;
 import Common.TaskMap;
-import Common.TaskState;
 import Controller.Controller;
 
 public class TaskList extends JPanel {
@@ -41,7 +40,7 @@ public class TaskList extends JPanel {
             public void run() {
                 taskList.removeAll();
                 for (Task task : tasks.values()) {
-                    if (task.state == TaskState.DONE)
+                    if (task.state == Task.State.DONE)
                         continue;
                     var taskPanel = new TaskPanel(controller, task);
                     c.gridy = GridBagConstraints.RELATIVE;

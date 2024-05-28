@@ -14,7 +14,12 @@ public class Task implements JSONifiable, JSONString, Cloneable {
     public String name = "";
     public String description = "";
     public GregorianCalendar deadline;
-    public TaskState state = TaskState.DUE;
+    public State state = State.DUE;
+
+    public static enum State {
+        DONE,
+        DUE
+    }
 
     public static interface IdGenerator {
         public int getNewId();
@@ -80,7 +85,7 @@ public class Task implements JSONifiable, JSONString, Cloneable {
         var cal = new GregorianCalendar();
         cal.setTime(Model.DATE_FORMAT.parse(date_string));
         this.deadline = cal;
-        this.state = obj.getEnum(TaskState.class, "state");
+        this.state = obj.getEnum(State.class, "state");
         return this;
     }
 
