@@ -10,10 +10,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.Closeable;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-
-// import javax.swing.SwingWorker;
 
 import org.json.JSONStringer;
 
@@ -232,18 +229,6 @@ public class Model implements Closeable {
 
     public boolean verifyUser(String uncheckedUser) {
         return state.verifyUser(uncheckedUser);
-    }
-
-    public void loadUser(String checkedUser) {
-        try {
-            var p = new Parser();
-            p.parse(serverConnection.readUserTasks(checkedUser));
-            tasks.putAll(p.tasks);
-        } catch (IOException e) {
-            return;
-        } catch (ParseException e) {
-            // TODO: попытаться вновь
-        }
     }
 
     public void close() {

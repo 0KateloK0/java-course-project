@@ -7,7 +7,7 @@ import org.json.JSONObject;
 public interface JSONifiable {
     // public String toString();
 
-    // public JSONObject toJSONObject();
+    public String toJSONString();
 
     // JSONifiable (JSONObject obj);
 
