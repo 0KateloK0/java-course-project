@@ -23,13 +23,9 @@ public class Controller implements Runnable, Closeable {
 
     @Override
     public void run() {
-        view = new View(this);
-        model = new Model(this, view);
-    }
-
-    public void setView(View view) {
-        this.view = view;
-        this.model = new Model(this, view);
+        model = new Model(this);
+        view = new View(this, model);
+        model.addPropertyChangeListener(view);
     }
 
     public void mainLoop() {
@@ -41,7 +37,11 @@ public class Controller implements Runnable, Closeable {
     }
 
     public void verify(String username) {
-        model.verifyUser(username);
+        if (model.verifyUser(username)) {
+            view.loadMainScreen();
+        } else {
+            view.promptUser();
+        }
     }
 
     public void executeCommand(AbstractCommand cmd) {

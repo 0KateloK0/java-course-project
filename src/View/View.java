@@ -6,9 +6,12 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
@@ -16,9 +19,11 @@ import java.util.Enumeration;
 
 import Common.TaskMap;
 import Controller.Controller;
+import Model.Model;
 
-public class View extends JFrame {
+public class View extends JFrame implements PropertyChangeListener {
     Controller controller;
+    Model model;
     private JPanel container;
     private UserPrompt userPrompt;
     private TaskManager taskManager;
@@ -37,8 +42,9 @@ public class View extends JFrame {
         statePanel.setOnline(isOnline);
     }
 
-    public View(Controller controller) {
+    public View(Controller controller, Model model) {
         this.controller = controller;
+        this.model = model;
 
         // задает шрифт
         {
@@ -80,15 +86,27 @@ public class View extends JFrame {
     }
 
     public void promptUser() {
-        var cl = (CardLayout) (container.getLayout());
-        cl.show(container, USER_PROMPT_CARD);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                var cl = (CardLayout) (container.getLayout());
+                cl.show(container, USER_PROMPT_CARD);
+            }
+        });
+
     }
 
     public void loadMainScreen() {
-        taskManager = new TaskManager(controller);
-        container.add(taskManager, TAKS_INTERFACE_CARD);
-        var cl = (CardLayout) (container.getLayout());
-        cl.show(container, TAKS_INTERFACE_CARD);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                taskManager = new TaskManager(controller);
+                taskManager.updateTasks(model.getTasks());
+                container.add(taskManager, TAKS_INTERFACE_CARD);
+                var cl = (CardLayout) (container.getLayout());
+                cl.show(container, TAKS_INTERFACE_CARD);
+            }
+        });
     }
 
     public void updateTasks(TaskMap tasks) {
@@ -97,5 +115,21 @@ public class View extends JFrame {
 
     public void showError(String error) {
 
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        System.out.println(evt.getPropertyName());
+        System.out.println(evt.getNewValue());
+        switch (evt.getPropertyName()) {
+            case "state":
+                setOnline((boolean) evt.getNewValue());
+                break;
+            case "tasks":
+                updateTasks((TaskMap) evt.getNewValue());
+                break;
+            default:
+                System.err.println("Неправильное или необработанное событие: " + evt.getPropertyName());
+        }
     }
 }

@@ -5,13 +5,15 @@ import Common.TaskMap;
 import Common.User;
 import Controller.Controller;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.Closeable;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import javax.swing.SwingWorker;
+// import javax.swing.SwingWorker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,14 +25,13 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileWriter;
 
-import View.View;
-
 public class Model implements Closeable {
     TaskMap tasks;
     Controller controller;
-    View view;
+    // View view;
     ServerConnection serverConnection;
     User activeUser;
+    private PropertyChangeSupport propertyChanger = new PropertyChangeSupport(this);
 
     public User getActiveUser() {
         return activeUser;
@@ -47,7 +48,7 @@ public class Model implements Closeable {
 
         public abstract void changeTask(int index, Task newTask);
 
-        public abstract void verifyUser(String uncheckedUser);
+        public abstract boolean verifyUser(String uncheckedUser);
 
         public abstract void close();
     }
@@ -81,21 +82,27 @@ public class Model implements Closeable {
         }
 
         @Override
-        public void verifyUser(String uncheckedUser) {
-            new Thread() {
-                public void run() {
-                    try {
-                        if (serverConnection.checkUser(uncheckedUser)) {
-                            view.loadMainScreen();
-                            serverConnection.getUser(uncheckedUser);
-                        } else {
-                            view.promptUser();
-                        }
-                    } catch (Exception e) {
-                        view.promptUser();
-                    }
-                }
-            }.start();
+        public boolean verifyUser(String uncheckedUser) {
+            try {
+                return serverConnection.checkUser(uncheckedUser);
+            } catch (Exception e) {
+                return false;
+            }
+
+            // new Thread() {
+            // public void run() {
+            // try {
+            // if (serverConnection.checkUser(uncheckedUser)) {
+            // view.loadMainScreen();
+            // serverConnection.getUser(uncheckedUser);
+            // } else {
+            // view.promptUser();
+            // }
+            // } catch (Exception e) {
+            // view.promptUser();
+            // }
+            // }
+            // }.start();
         }
 
         @Override
@@ -121,7 +128,7 @@ public class Model implements Closeable {
         }
 
         @Override
-        public void verifyUser(String uncheckedUser) {
+        public boolean verifyUser(String uncheckedUser) {
             var cacheFile = new File("./clientDB/cache.json");
             try {
                 if (cacheFile.createNewFile()) {
@@ -158,6 +165,8 @@ public class Model implements Closeable {
                                         .key("metadata")
                                         .object()
                                         .key("lastChanged").value(DATE_FORMAT.format(new Date()))
+                                        .key("lastTaskId")
+                                        .value(((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId())
                                         .endObject()
                                         .endObject()
                                         .toString());
@@ -176,27 +185,36 @@ public class Model implements Closeable {
                                     userTasks.put(task.id, task);
                                 }
 
+                                var metadataJSON = userTasksObj.getJSONObject("metadata");
+                                var lastTaskId = metadataJSON.getInt("lastTaskId");
+                                ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(lastTaskId); // TODO:
+                                                                                                         // костыль
+
                                 userTasksInput.close();
                             }
 
-                            javax.swing.SwingUtilities.invokeLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    view.loadMainScreen();
-                                    view.updateTasks(userTasks);
-                                }
-                            });
-                            return;
+                            // javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                            // @Override
+                            // public void run() {
+                            // view.loadMainScreen();
+                            // view.updateTasks(userTasks);
+                            // }
+                            // });
+                            tasks = userTasks;
+                            return true;
                         }
                     }
                 }
             } catch (ParseException | JSONException e) {
                 // пересоздать файл
-                cacheFile.delete();
+                // cacheFile.delete();
+                e.printStackTrace();
+                System.err.println("JSON error");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            view.promptUser();
+            return false;
+            // view.promptUser();
         }
 
         @Override
@@ -211,7 +229,14 @@ public class Model implements Closeable {
                 for (var task : tasks.values()) {
                     obj.value(task.toJSONObject());
                 }
-                obj.endArray().endObject();
+                obj.endArray();
+                obj.key("metadata")
+                        .object()
+                        .key("lastChanged").value(DATE_FORMAT.format(new Date()))
+                        .key("lastTaskId")
+                        .value(((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId())
+                        .endObject();
+                obj.endObject();
                 fw.write(obj.toString());
                 fw.close();
             } catch (IOException e) {
@@ -223,11 +248,11 @@ public class Model implements Closeable {
     State state;
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("y MM dd HH:mm");
 
-    public Model(Controller controller, View view) {
+    public Model(Controller controller) {
         tasks = new TaskMap();
 
         this.controller = controller;
-        this.view = view;
+        // this.view = view;
         new Thread() {
             public void run() {
                 try {
@@ -240,32 +265,44 @@ public class Model implements Closeable {
         }.start();
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        this.propertyChanger.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        this.propertyChanger.removePropertyChangeListener(listener);
+    }
+
     private void setState(State newState) {
+        var oldState = state;
         state = newState;
-        view.setOnline(state instanceof OnlineState);
+        propertyChanger.firePropertyChange("state", oldState instanceof OnlineState, newState instanceof OnlineState);
     }
 
     public void addTask(Task task) {
+        var oldTasks = tasks.clone();
         state.addTask(task);
-        view.updateTasks(tasks);
+        propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
     public void deleteTask(int index) {
+        var oldTasks = tasks.clone();
         state.deleteTask(index);
-        view.updateTasks(tasks);
+        propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
     public void changeTask(int index, Task newTask) {
+        var oldTasks = tasks.clone();
         state.changeTask(index, newTask);
-        view.updateTasks(tasks);
+        propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
     public TaskMap getTasks() {
         return tasks;
     }
 
-    public void verifyUser(String uncheckedUser) {
-        state.verifyUser(uncheckedUser);
+    public boolean verifyUser(String uncheckedUser) {
+        return state.verifyUser(uncheckedUser);
     }
 
     public void loadUser(String checkedUser) {

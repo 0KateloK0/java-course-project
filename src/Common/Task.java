@@ -10,20 +10,46 @@ import org.json.JSONStringer;
 import Model.Model;
 
 public class Task implements JSONifiable, JSONString, Cloneable {
-    private static Integer lastId = 1;
     public Integer id = 0;
     public String name = "";
     public String description = "";
     public GregorianCalendar deadline;
     public TaskState state = TaskState.DUE;
 
-    // public JSONObject toJSONObject() {
+    public static interface IdGenerator {
+        public int getNewId();
+    }
 
-    // }
+    public static class DefaultIdGenerator implements IdGenerator {
+        private int lastId = 1;
+
+        public int getLastId() {
+            return lastId;
+        }
+
+        public void setLastId(int lastId) {
+            this.lastId = lastId;
+        }
+
+        @Override
+        public int getNewId() {
+            return ++lastId;
+        }
+    }
+
+    private static IdGenerator idGenerator = new DefaultIdGenerator();
+
+    public static IdGenerator getIdGenerator() {
+        return Task.idGenerator;
+    }
+
+    public static void setIdGenerator(IdGenerator idGenerator) {
+        Task.idGenerator = idGenerator;
+    }
 
     public Task() {
         deadline = new GregorianCalendar();
-        id = ++lastId;
+        assignUniqueId();
     }
 
     public Task(Task task) {
@@ -43,7 +69,7 @@ public class Task implements JSONifiable, JSONString, Cloneable {
     }
 
     public void assignUniqueId() {
-        id = ++lastId;
+        id = idGenerator.getNewId();
     }
 
     public Task fromJSONObject(JSONObject obj) throws ParseException {
