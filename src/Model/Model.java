@@ -167,7 +167,7 @@ public class Model implements Closeable {
 
         @Override
         public TaskMap loadActiveUserTasks() {
-            var cachedUserData = fileManager.loadUserFile(activeUser);
+            var cachedUserData = fileManager.loadUser(activeUser);
             ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(cachedUserData.lastTaskId);
             return cachedUserData.tasks;
         }

@@ -19,10 +19,29 @@ public class FileManager {
         return res;
     }
 
+    // public <T extends JSONifiable> T loadJSONFile(File file) {
+    // try {
+    // if (file.createNewFile()) {
+    // // заполнить его нужной информацией
+    // var fw = new FileWriter(file);
+    // fw.write(new T().toJSONString());
+    // fw.close();
+    // } else {
+    // try {
+    // return new T().fromJSONObject(new JSONObject(readFile(file)));
+    // } catch (ParseException e) {
+    // e.printStackTrace();
+    // }
+    // }
+    // } catch (IOException e) {
+    // e.printStackTrace(); // это исключение не должно появиться
+    // }
+    // return new T();
+    // }
+
     public CachedData loadCacheFile(File cacheFile) {
         try {
             if (cacheFile.createNewFile()) {
-                // заполнить его нужной информацией
                 var fw = new FileWriter(cacheFile);
                 fw.write(new CachedData().toJSONString());
                 fw.close();
@@ -34,7 +53,7 @@ public class FileManager {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace(); // это исключение не должно появиться
+            e.printStackTrace(); // эта ошибка практически никогда не должна произойти
         }
         return new CachedData();
     }
@@ -43,16 +62,19 @@ public class FileManager {
         return "./clientDB/" + username + ".json";
     }
 
-    public UserData loadUserFile(User user) {
+    public UserData loadUser(User user) {
+        return loadUserFile(new File(getUserTasksFileLocation(user.name)));
+    }
+
+    public UserData loadUserFile(File userFile) {
         try {
-            var userTasksFile = new File(getUserTasksFileLocation(user.name));
-            if (userTasksFile.createNewFile()) {
-                var fw = new FileWriter(userTasksFile);
-                fw.write(new UserData().toJSONString()); // TODO: костыль
+            if (userFile.createNewFile()) {
+                var fw = new FileWriter(userFile);
+                fw.write(new UserData().toJSONString());
                 fw.close();
             } else {
                 try {
-                    return new UserData().fromJSONObject(new JSONObject(readFile(userTasksFile)));
+                    return new UserData().fromJSONObject(new JSONObject(readFile(userFile)));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
