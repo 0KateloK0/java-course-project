@@ -1,5 +1,6 @@
 package Model;
 
+import Common.FileManager;
 import Common.Task;
 import Common.TaskMap;
 import Common.User;
@@ -15,22 +16,16 @@ import java.text.SimpleDateFormat;
 
 // import javax.swing.SwingWorker;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import java.util.Date;
-import java.util.Scanner;
 import java.io.File;
 import java.io.FileWriter;
 
 public class Model implements Closeable {
-    TaskMap tasks;
-    Controller controller;
-    // View view;
-    ServerConnection serverConnection;
-    User activeUser;
+    private TaskMap tasks;
+    private ServerConnection serverConnection;
+    private User activeUser;
     private PropertyChangeSupport propertyChanger = new PropertyChangeSupport(this);
 
     public User getActiveUser() {
@@ -50,10 +45,13 @@ public class Model implements Closeable {
 
         public abstract boolean verifyUser(String uncheckedUser);
 
+        public abstract TaskMap loadActiveUserTasks();
+
         public abstract void close();
     }
 
     private class OnlineState extends State {
+
         @Override
         public void addTask(Task task) {
             try {
@@ -88,30 +86,23 @@ public class Model implements Closeable {
             } catch (Exception e) {
                 return false;
             }
-
-            // new Thread() {
-            // public void run() {
-            // try {
-            // if (serverConnection.checkUser(uncheckedUser)) {
-            // view.loadMainScreen();
-            // serverConnection.getUser(uncheckedUser);
-            // } else {
-            // view.promptUser();
-            // }
-            // } catch (Exception e) {
-            // view.promptUser();
-            // }
-            // }
-            // }.start();
         }
 
         @Override
         public void close() {
             serverConnection.close();
         }
+
+        @Override
+        public TaskMap loadActiveUserTasks() {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'loadActiveUserTasks'");
+        }
     }
 
     private class OfflineState extends State {
+        private FileManager fileManager = new FileManager();
+
         @Override
         public void addTask(Task task) {
             tasks.put(task.id, task);
@@ -130,89 +121,22 @@ public class Model implements Closeable {
         @Override
         public boolean verifyUser(String uncheckedUser) {
             var cacheFile = new File("./clientDB/cache.json");
-            try {
-                if (cacheFile.createNewFile()) {
-                    // заполнить его нужной информацией
-                    var obj = new JSONObject();
-                    obj.put("users", new JSONArray());
-                    var fw = new FileWriter(cacheFile);
-                    fw.write(obj.toString());
-                    fw.close();
-                } else {
-                    var cacheScanner = new Scanner(cacheFile);
-                    String cache = "";
-                    while (cacheScanner.hasNextLine()) {
-                        String line = cacheScanner.nextLine();
-                        cache += line;
-                    }
-
-                    cacheScanner.close();
-
-                    var obj = new JSONObject(cache);
-
-                    var usersJSON = obj.getJSONArray("users");
-                    for (int i = 0; i < usersJSON.length(); ++i) {
-                        var user = new User().fromJSONObject(usersJSON.getJSONObject(i));
-                        if (user.name.equals(uncheckedUser)) {
-                            setActiveUser(user);
-                            var userTasks = new TaskMap();
-                            var userTasksFile = new File("./clientDB/" + user.name + ".json");
-                            if (userTasksFile.createNewFile()) {
-                                var fw = new FileWriter(userTasksFile);
-                                fw.write(new JSONStringer()
-                                        .object()
-                                        .key("tasks").array().endArray()
-                                        .key("metadata")
-                                        .object()
-                                        .key("lastChanged").value(DATE_FORMAT.format(new Date()))
-                                        .key("lastTaskId")
-                                        .value(((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId())
-                                        .endObject()
-                                        .endObject()
-                                        .toString());
-                                fw.close();
-                            } else {
-                                var userTasksInput = new Scanner(userTasksFile);
-                                String userTasksCache = "";
-                                while (userTasksInput.hasNextLine()) {
-                                    String line = userTasksInput.nextLine();
-                                    userTasksCache += line;
-                                }
-                                var userTasksObj = new JSONObject(userTasksCache);
-                                var tasksJSON = userTasksObj.getJSONArray("tasks");
-                                for (int j = 0; j < tasksJSON.length(); ++j) {
-                                    var task = new Task().fromJSONObject(tasksJSON.getJSONObject(j));
-                                    userTasks.put(task.id, task);
-                                }
-
-                                var metadataJSON = userTasksObj.getJSONObject("metadata");
-                                var lastTaskId = metadataJSON.getInt("lastTaskId");
-                                ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(lastTaskId); // TODO:
-                                                                                                         // костыль
-
-                                userTasksInput.close();
-                            }
-
-                            // javax.swing.SwingUtilities.invokeLater(new Runnable() {
-                            // @Override
-                            // public void run() {
-                            // view.loadMainScreen();
-                            // view.updateTasks(userTasks);
-                            // }
-                            // });
-                            tasks = userTasks;
-                            return true;
-                        }
-                    }
+            var userMap = fileManager.loadCacheFile(cacheFile);
+            for (var user : userMap.values()) {
+                if (user.name.equals(uncheckedUser)) {
+                    return true;
                 }
-            } catch (ParseException | JSONException e) {
-                // пересоздать файл
-                // cacheFile.delete();
-                e.printStackTrace();
-                System.err.println("JSON error");
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+            // try {
+
+            // } catch (ParseException | JSONException e) {
+            // // пересоздать файл
+            // // cacheFile.delete();
+            // e.printStackTrace();
+            // System.err.println("JSON error");
+            // } catch (IOException e) {
+            // e.printStackTrace();
+            // }
             return false;
             // view.promptUser();
         }
@@ -243,16 +167,19 @@ public class Model implements Closeable {
                 e.printStackTrace();
             }
         }
+
+        @Override
+        public TaskMap loadActiveUserTasks() {
+            return fileManager.loadUserFile(activeUser);
+        }
     }
 
-    State state;
+    private State state;
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("y MM dd HH:mm");
 
-    public Model(Controller controller) {
+    public Model() {
         tasks = new TaskMap();
 
-        this.controller = controller;
-        // this.view = view;
         new Thread() {
             public void run() {
                 try {

@@ -23,7 +23,7 @@ public class Controller implements Runnable, Closeable {
 
     @Override
     public void run() {
-        model = new Model(this);
+        model = new Model();
         view = new View(this, model);
         model.addPropertyChangeListener(view);
     }
