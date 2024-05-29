@@ -1,31 +1,41 @@
-import java.util.HashSet;
-import java.util.function.Function;
-
-import Model.FileSystem;
+import Common.FileManager;
+import Common.User;
+import Common.UserMap;
+import ServerModel.Session;
 
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Server {
     private ServerSocket server = null;
 
-    private HashSet<String> users = new HashSet<>();
+    private UserMap users;
 
-    class RequestProcessingThread extends Thread {
+    class CommunicationThread extends Thread {
         private Socket socket = null;
         private BufferedReader in = null;
         private DataOutputStream out = null;
+        // public User activeUser = null;
+        public Session session = null;
 
-        public RequestProcessingThread(Socket socket) {
+        public synchronized void write(String response) {
+            try {
+                out.writeUTF(response);
+            } catch (IOException e) {
+                e.printStackTrace(); // TODO: обработать правильно
+            }
+        }
+
+        public CommunicationThread(Socket socket) {
             this.socket = socket;
             try {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new DataOutputStream(socket.getOutputStream());
-            } catch (Exception ignore) {
+            } catch (IOException e) {
+                e.printStackTrace(); // это исключение не должно случаться
             }
-
+            session = new Session();
         }
 
         @Override
@@ -33,16 +43,21 @@ public class Server {
             try {
                 var request = new ArrayList<String>();
                 String line = "";
-                while (!line.equals("Over")) {
+                while (!line.equals("End")) {
                     try {
                         line = in.readLine();
-                        request.add(line);
-                    } catch (Exception ignore) {
-                        ignore.printStackTrace();
+                        if (line.equals("Over")) {
+                            var requestProcessingThread = new RequestProcessingThread(this, request);
+                            requestProcessingThread.start();
+                            request = new ArrayList<>();
+                        } else {
+                            request.add(line);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        out.writeUTF("400\n");
                     }
                 }
-                parseRequest(request);
-
                 socket.close();
                 in.close();
                 out.close();
@@ -50,72 +65,63 @@ public class Server {
             }
         }
 
-        public void parseRequest(ArrayList<String> request) {
-            try {
-                if (request.get(0).contains("GET")) {
-                    String path = request.get(0).split(" ")[1];
-                    var route = path.split("/"); // всегда 0 элемент является пустой строкой
-                    if (route[1].equals("user")) {
-                        if (route[2].equals("tasks")) {
-
-                        } else {
-                            out.writeUTF(
-                                    (users.contains(request.get(0).split("/")[2]) ? "true" : "false") + "\n");
-                        }
-                        return;
-                    }
-                } else if (request.get(0).contains("POST")) {
-
-                }
-
-                out.writeUTF("400\n");
-
-            } catch (Exception ignore) {
-                ignore.printStackTrace();
-            }
-
-        }
     }
 
-    // class Parser {
-    // private HashMap<String, Function<String, Void>> routes = new HashMap<>();
+    class RequestProcessingThread extends Thread {
+        private CommunicationThread communication;
+        private ArrayList<String> request;
 
-    // public void addRoute(String route, Function<String, Void> action) {
-    // routes.put(route, action);
-    // }
+        RequestProcessingThread(CommunicationThread communication, ArrayList<String> request) {
+            this.communication = communication;
+            this.request = request;
+        }
 
-    // public void parse(String request) {
-    // var pos = request.indexOf(" ");
-    // var method = request.substring(0, pos);
-    // var route = request.substring(pos + 1, request.indexOf("\n", pos + 1));
-    // routes.get(route).apply(request);
-    // }
+        @Override
+        public void run() {
+            var fileManager = new FileManager();
+            if (request.get(0).contains("GET")) {
+                String path = request.get(0).split(" ")[1];
+                var route = path.split("/"); // всегда 0 элемент является пустой строкой
+                if (route[1].equals("user")) {
+                    if (route[2].equals("tasks")) {
+                        var userData = fileManager.loadUser(communication.session.getUser());
+                        communication.write(userData.toJSONString() + "\n");
+                    } else {
+                        User user = users.findByName(request.get(0).split("/")[2]);
+                        if (user != null) {
+                            communication.session.setUser(user);
+                        }
+                        communication.write(
+                                (user != null ? user.toJSONString() : "404") + "\n");
+                    }
+                    return;
+                }
+            } else if (request.get(0).contains("POST")) {
 
-    // public Parser() {
-    // }
-    // }
+            }
+
+            communication.write("400\n");
+        }
+
+    }
 
     Server(int port, String cwd) {
-        // var parser = new Parser();
-        // parser.addRoute("/user", null);
-
-        users.add("Artem");
-        // var fileLoader = new FileLoader(cwd + "/users.json");
+        var fileManager = new FileManager();
+        var cacheData = fileManager.loadCacheFile(new File(cwd + "/cache.json"));
+        users = cacheData.userMap;
 
         try {
             server = new ServerSocket(port);
             while (true) {
                 var socket = server.accept();
-                System.out.println(socket);
-
-                var requestProcessingThread = new RequestProcessingThread(socket);
-                requestProcessingThread.start();
+                var CommunicationThread = new CommunicationThread(socket);
+                CommunicationThread.start();
             }
         } catch (Exception ignore) {
         }
     }
 
     public static void main(String[] args) {
-        new Server(4444, "../serverDB");
+        new Server(4444, "./serverDB");
     }
 }

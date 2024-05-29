@@ -61,7 +61,10 @@ public class ServerConnection implements Closeable {
     public boolean checkUser(String uncheckedUser) throws IOException {
         // TODO: переделать это в аутентификацию
         send("GET /user/" + uncheckedUser);
-        return receive().contains("true");
+        if (receive().contains("404")) {
+            return false;
+        }
+        return true;
     }
 
     public String readUserTasks(String user) throws IOException {

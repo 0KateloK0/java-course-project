@@ -119,23 +119,7 @@ public class Model implements Closeable {
             var cacheFile = new File("./clientDB/cache.json");
             var cachedData = fileManager.loadCacheFile(cacheFile);
             var userMap = cachedData.userMap;
-            for (var user : userMap.values()) {
-                if (user.name.equals(uncheckedUser)) {
-                    return true;
-                }
-            }
-            // try {
-
-            // } catch (ParseException | JSONException e) {
-            // // пересоздать файл
-            // // cacheFile.delete();
-            // e.printStackTrace();
-            // System.err.println("JSON error");
-            // } catch (IOException e) {
-            // e.printStackTrace();
-            // }
-            return false;
-            // view.promptUser();
+            return userMap.contains(uncheckedUser);
         }
 
         @Override
