@@ -39,7 +39,7 @@ public class Model implements Closeable {
 
         public abstract void changeTask(int index, Task newTask);
 
-        public abstract boolean verifyUser(String uncheckedUser);
+        public abstract User authenticate(String uncheckedUser);
 
         public abstract TaskMap loadActiveUserTasks();
 
@@ -76,11 +76,11 @@ public class Model implements Closeable {
         }
 
         @Override
-        public boolean verifyUser(String uncheckedUser) {
+        public User authenticate(String uncheckedUser) {
             try {
-                return serverConnection.checkUser(uncheckedUser);
+                return serverConnection.authenticate(uncheckedUser);
             } catch (Exception e) {
-                return false;
+                return null;
             }
         }
 
@@ -115,11 +115,11 @@ public class Model implements Closeable {
         }
 
         @Override
-        public boolean verifyUser(String uncheckedUser) {
+        public User authenticate(String uncheckedUser) {
             var cacheFile = new File("./clientDB/cache.json");
             var cachedData = fileManager.loadCacheFile(cacheFile);
             var userMap = cachedData.userMap;
-            return userMap.contains(uncheckedUser);
+            return userMap.findByName(uncheckedUser);
         }
 
         @Override
@@ -211,8 +211,14 @@ public class Model implements Closeable {
         return tasks;
     }
 
-    public boolean verifyUser(String uncheckedUser) {
-        return state.verifyUser(uncheckedUser);
+    public User authenticate(String uncheckedUser) {
+        var user = state.authenticate(uncheckedUser);
+        if (user == null)
+            return null;
+        else {
+            setActiveUser(user);
+            return user;
+        }
     }
 
     public void close() {

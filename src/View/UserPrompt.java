@@ -67,7 +67,7 @@ public class UserPrompt extends JPanel implements ActionListener {
             showError("Ник не может быть пустым");
         } else {
             hideError();
-            controller.verify(getUsername());
+            controller.authenticate(getUsername());
         }
     }
 

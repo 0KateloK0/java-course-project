@@ -36,8 +36,8 @@ public class Controller implements Runnable, Closeable {
         });
     }
 
-    public void verify(String username) {
-        if (model.verifyUser(username)) {
+    public void authenticate(String username) {
+        if (model.authenticate(username) != null) {
             view.loadMainScreen();
         } else {
             view.promptUser();

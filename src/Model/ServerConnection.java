@@ -6,8 +6,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
+import java.text.ParseException;
+
+import org.json.JSONObject;
 
 import Common.Task;
+import Common.User;
 
 public class ServerConnection implements Closeable {
     Socket socket;
@@ -58,13 +62,17 @@ public class ServerConnection implements Closeable {
         send("PUT /task/" + String.valueOf(index));
     }
 
-    public boolean checkUser(String uncheckedUser) throws IOException {
-        // TODO: переделать это в аутентификацию
+    public User authenticate(String uncheckedUser) throws IOException {
         send("GET /user/" + uncheckedUser);
-        if (receive().contains("404")) {
-            return false;
+        var response = receive();
+        if (response.contains("404")) {
+            return null;
         }
-        return true;
+        try {
+            return new User().fromJSONObject(new JSONObject(response));
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     public String readUserTasks(String user) throws IOException {
