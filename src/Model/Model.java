@@ -46,7 +46,7 @@ public class Model implements Closeable {
         public abstract void close();
     }
 
-    private class OnlineState extends State {
+    public class OnlineState extends State {
 
         @Override
         public void addTask(Task task) {
@@ -102,7 +102,7 @@ public class Model implements Closeable {
         }
     }
 
-    private class OfflineState extends State {
+    public class OfflineState extends State {
         private FileManager fileManager = new FileManager("./clientDB/");
 
         @Override
@@ -192,7 +192,11 @@ public class Model implements Closeable {
     private void setState(State newState) {
         var oldState = state instanceof OnlineState;
         state = newState;
-        propertyChanger.firePropertyChange("state", oldState, newState instanceof OnlineState);
+        propertyChanger.firePropertyChange("state", oldState, state instanceof OnlineState);
+    }
+
+    public boolean isOnline() {
+        return state instanceof OnlineState;
     }
 
     public void addTask(Task task) {

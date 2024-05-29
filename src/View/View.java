@@ -66,14 +66,13 @@ public class View extends JFrame implements PropertyChangeListener {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                // controller.model.serverConnection.close();
                 controller.close();
                 System.exit(0);
             }
         });
 
         container = new JPanel(new CardLayout());
-        statePanel = new StatePanel(false, null);
+        statePanel = new StatePanel(model.isOnline(), null);
         userPrompt = new UserPrompt(controller);
 
         // taskManager = new TaskManager(controller);
@@ -119,8 +118,6 @@ public class View extends JFrame implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        System.out.println(evt.getPropertyName());
-        System.out.println(evt.getNewValue());
         switch (evt.getPropertyName()) {
             case "state":
                 setOnline((boolean) evt.getNewValue());
