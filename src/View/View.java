@@ -18,6 +18,7 @@ import javax.swing.plaf.FontUIResource;
 import java.util.Enumeration;
 
 import Common.TaskMap;
+import Common.User;
 import Controller.Controller;
 import Model.Model;
 
@@ -72,7 +73,7 @@ public class View extends JFrame implements PropertyChangeListener {
         });
 
         container = new JPanel(new CardLayout());
-        statePanel = new StatePanel(model.isOnline(), null);
+        statePanel = new StatePanel(model.isOnline(), model.getActiveUser());
         userPrompt = new UserPrompt(controller);
 
         // taskManager = new TaskManager(controller);
@@ -124,6 +125,9 @@ public class View extends JFrame implements PropertyChangeListener {
                 break;
             case "tasks":
                 updateTasks((TaskMap) evt.getNewValue());
+                break;
+            case "user":
+                statePanel.setUser((User) evt.getNewValue());
                 break;
             default:
                 System.err.println("Неправильное или необработанное событие: " + evt.getPropertyName());
