@@ -9,6 +9,12 @@ import java.util.Scanner;
 import org.json.JSONObject;
 
 public class FileManager {
+    private String cwd;
+
+    public FileManager(String cwd) {
+        this.cwd = cwd;
+    }
+
     private String readFile(File file) throws IOException {
         var scanner = new Scanner(file);
         String res = "";
@@ -59,7 +65,7 @@ public class FileManager {
     }
 
     public String getUserTasksFileLocation(String username) {
-        return "./clientDB/" + username + ".json";
+        return cwd + username + ".json";
     }
 
     public UserData loadUser(User user) {

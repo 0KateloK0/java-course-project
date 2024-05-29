@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import Common.Task;
 import Common.User;
+import Common.UserData;
 
 public class ServerConnection implements Closeable {
     Socket socket;
@@ -28,6 +29,7 @@ public class ServerConnection implements Closeable {
 
     public void close() {
         try {
+            out.writeUTF("\nEnd\n");
             socket.close();
             in.close();
             out.close();
@@ -41,7 +43,6 @@ public class ServerConnection implements Closeable {
     }
 
     public void send(String data) throws IOException {
-        System.out.println(data);
         out.writeUTF(data + "\nOver\n");
     }
 
@@ -64,24 +65,27 @@ public class ServerConnection implements Closeable {
 
     public User authenticate(String uncheckedUser) throws IOException {
         send("GET /user/" + uncheckedUser);
-        var response = receive();
+        var response = receive().substring(1); // странный символ с ascii номером 0 в начале строки
         if (response.contains("404")) {
             return null;
         }
         try {
-            return new User().fromJSONObject(new JSONObject(response));
+            return new User().fromJSONObject(new JSONObject(response.stripLeading()));
         } catch (ParseException e) {
+            e.printStackTrace();
             return null;
         }
     }
 
-    public String readUserTasks(String user) throws IOException {
-        send("GET /user/tasks/" + user);
-        return receive();
-    }
-
-    public void getUser(String user) throws IOException {
-        send("GET /user/" + user);
-
+    public UserData readUserTasks(User user) throws IOException {
+        send("GET /user/tasks/" + user.name);
+        var response = receive().substring(2); // странный символ с ascii номером 0 в начале строки
+        System.out.println(response);
+        try {
+            return new UserData().fromJSONObject(new JSONObject(response));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

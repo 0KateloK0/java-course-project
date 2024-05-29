@@ -16,6 +16,7 @@ public class UserData implements JSONifiable {
     @Override
     public UserData fromJSONObject(JSONObject obj) throws ParseException {
         var tasksJSON = obj.getJSONArray("tasks");
+        this.tasks = new TaskMap();
         for (int j = 0; j < tasksJSON.length(); ++j) {
             try {
                 var task = new Task().fromJSONObject(tasksJSON.getJSONObject(j));

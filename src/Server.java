@@ -9,14 +9,13 @@ import java.util.ArrayList;
 
 public class Server {
     private ServerSocket server = null;
-
+    private FileManager fileManager;
     private UserMap users;
 
     class CommunicationThread extends Thread {
         private Socket socket = null;
         private BufferedReader in = null;
         private DataOutputStream out = null;
-        // public User activeUser = null;
         public Session session = null;
 
         public synchronized void write(String response) {
@@ -78,13 +77,13 @@ public class Server {
 
         @Override
         public void run() {
-            var fileManager = new FileManager();
             if (request.get(0).contains("GET")) {
                 String path = request.get(0).split(" ")[1];
                 var route = path.split("/"); // всегда 0 элемент является пустой строкой
                 if (route[1].equals("user")) {
                     if (route[2].equals("tasks")) {
                         var userData = fileManager.loadUser(communication.session.getUser());
+                        communication.session.setTasks(userData.tasks);
                         communication.write(userData.toJSONString() + "\n");
                     } else {
                         User user = users.findByName(request.get(0).split("/")[2]);
@@ -106,7 +105,8 @@ public class Server {
     }
 
     Server(int port, String cwd) {
-        var fileManager = new FileManager();
+        var fileManager = new FileManager("./serverDB/");
+        this.fileManager = fileManager;
         var cacheData = fileManager.loadCacheFile(new File(cwd + "/cache.json"));
         users = cacheData.userMap;
 

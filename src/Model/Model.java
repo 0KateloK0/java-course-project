@@ -78,8 +78,14 @@ public class Model implements Closeable {
         @Override
         public User authenticate(String uncheckedUser) {
             try {
-                return serverConnection.authenticate(uncheckedUser);
-            } catch (Exception e) {
+                var user = serverConnection.authenticate(uncheckedUser);
+                var userData = serverConnection.readUserTasks(user);
+                ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(userData.lastTaskId);
+                tasks = userData.tasks;
+                System.out.println(tasks);
+                return user;
+            } catch (IOException e) {
+                e.printStackTrace();
                 return null;
             }
         }
@@ -97,7 +103,7 @@ public class Model implements Closeable {
     }
 
     private class OfflineState extends State {
-        private FileManager fileManager = new FileManager();
+        private FileManager fileManager = new FileManager("./clientDB/");
 
         @Override
         public void addTask(Task task) {
@@ -184,9 +190,9 @@ public class Model implements Closeable {
     }
 
     private void setState(State newState) {
-        var oldState = state;
+        var oldState = state instanceof OnlineState;
         state = newState;
-        propertyChanger.firePropertyChange("state", oldState instanceof OnlineState, newState instanceof OnlineState);
+        propertyChanger.firePropertyChange("state", oldState, newState instanceof OnlineState);
     }
 
     public void addTask(Task task) {

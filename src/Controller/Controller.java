@@ -37,7 +37,9 @@ public class Controller implements Runnable, Closeable {
     }
 
     public void authenticate(String username) {
-        if (model.authenticate(username) != null) {
+        var res = model.authenticate(username);
+        System.out.println(res);
+        if (res != null) {
             view.loadMainScreen();
         } else {
             view.promptUser();
