@@ -88,4 +88,9 @@ public class ServerConnection implements Closeable {
             return null;
         }
     }
+
+    public void createUser(String unregisteredUser) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createUser'");
+    }
 }

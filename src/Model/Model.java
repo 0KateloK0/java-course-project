@@ -29,7 +29,9 @@ public class Model implements Closeable {
     }
 
     public void setActiveUser(User activeUser) {
+        var oldUser = this.activeUser;
         this.activeUser = activeUser;
+        propertyChanger.firePropertyChange("user", oldUser, this.activeUser);
     }
 
     private abstract class State {
@@ -40,6 +42,8 @@ public class Model implements Closeable {
         public abstract void changeTask(int index, Task newTask);
 
         public abstract User authenticate(String uncheckedUser);
+
+        public abstract User register(String unregisteredUser);
 
         public abstract TaskMap loadActiveUserTasks();
 
@@ -79,6 +83,9 @@ public class Model implements Closeable {
         public User authenticate(String uncheckedUser) {
             try {
                 var user = serverConnection.authenticate(uncheckedUser);
+                if (user == null)
+                    return null;
+                setActiveUser(user);
                 var userData = serverConnection.readUserTasks(user);
                 ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(userData.lastTaskId);
                 tasks = userData.tasks;
@@ -99,6 +106,12 @@ public class Model implements Closeable {
         public TaskMap loadActiveUserTasks() {
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'loadActiveUserTasks'");
+        }
+
+        @Override
+        public User register(String unregisteredUser) {
+            serverConnection.createUser(unregisteredUser);
+            return null; // TODO:
         }
     }
 
@@ -125,7 +138,11 @@ public class Model implements Closeable {
             var cacheFile = new File("./clientDB/cache.json");
             var cachedData = fileManager.loadCacheFile(cacheFile);
             var userMap = cachedData.userMap;
-            return userMap.findByName(uncheckedUser);
+            var user = userMap.findByName(uncheckedUser);
+            if (user == null)
+                return null;
+            setActiveUser(user);
+            return user;
         }
 
         @Override
@@ -160,6 +177,11 @@ public class Model implements Closeable {
             var cachedUserData = fileManager.loadUser(activeUser);
             ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(cachedUserData.lastTaskId);
             return cachedUserData.tasks;
+        }
+
+        @Override
+        public User register(String unregisteredUser) {
+            return null; // Нельзя зарегистрироваться в офлайн состоянии
         }
     }
 
@@ -215,6 +237,10 @@ public class Model implements Closeable {
         var oldTasks = tasks.clone();
         state.changeTask(index, newTask);
         propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
+    }
+
+    public User register(String unregisteredUser) {
+        return state.register(unregisteredUser);
     }
 
     public TaskMap getTasks() {

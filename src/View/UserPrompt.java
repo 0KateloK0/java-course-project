@@ -19,6 +19,8 @@ public class UserPrompt extends JPanel implements ActionListener {
     JTextField usernameInput;
     Controller controller;
     JLabel errorLabel;
+    private final static String SUBMIT_CMD = "submit";
+    private final static String REGISTER_CMD = "register";
 
     UserPrompt(Controller controller) {
         this.controller = controller;
@@ -35,7 +37,12 @@ public class UserPrompt extends JPanel implements ActionListener {
         usernameInput = new JTextField("Artem");
 
         var submitButton = new JButton("Войти");
+        submitButton.setActionCommand(SUBMIT_CMD);
         submitButton.addActionListener(this);
+
+        var registerButton = new JButton("Зарегистрироваться");
+        registerButton.setActionCommand(REGISTER_CMD);
+        registerButton.addActionListener(this);
 
         var c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -61,13 +68,17 @@ public class UserPrompt extends JPanel implements ActionListener {
         errorLabel.setVisible(false);
     }
 
-    public void actionPerformed(ActionEvent ignored) {
+    public void actionPerformed(ActionEvent e) {
         var username = getUsername();
         if (username.isEmpty()) {
             showError("Ник не может быть пустым");
         } else {
             hideError();
-            controller.authenticate(getUsername());
+            if (e.getActionCommand().equals(SUBMIT_CMD)) {
+                controller.authenticate(username);
+            } else {
+                controller.register(username);
+            }
         }
     }
 
