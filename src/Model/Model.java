@@ -45,8 +45,6 @@ public class Model implements Closeable {
 
         public abstract User register(String unregisteredUser);
 
-        public abstract TaskMap loadActiveUserTasks();
-
         public abstract void close();
     }
 
@@ -86,10 +84,11 @@ public class Model implements Closeable {
                 if (user == null)
                     return null;
                 setActiveUser(user);
+
                 var userData = serverConnection.readUserTasks(user);
                 ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(userData.lastTaskId);
                 tasks = userData.tasks;
-                System.out.println(tasks);
+
                 return user;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -100,12 +99,6 @@ public class Model implements Closeable {
         @Override
         public void close() {
             serverConnection.close();
-        }
-
-        @Override
-        public TaskMap loadActiveUserTasks() {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'loadActiveUserTasks'");
         }
 
         @Override
@@ -142,41 +135,17 @@ public class Model implements Closeable {
             if (user == null)
                 return null;
             setActiveUser(user);
+
+            var cachedUserData = fileManager.loadUser(activeUser);
+            ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(cachedUserData.lastTaskId);
+            tasks = cachedUserData.tasks;
+
             return user;
         }
 
         @Override
         public void close() {
-            var userTasksFile = new File("./clientDB/" + activeUser.name + ".json");
-            try {
-                var fw = new FileWriter(userTasksFile);
-                var obj = new JSONStringer()
-                        .object()
-                        .key("tasks")
-                        .array();
-                for (var task : tasks.values()) {
-                    obj.value(task.toJSONObject());
-                }
-                obj.endArray();
-                obj.key("metadata")
-                        .object()
-                        .key("lastChanged").value(DATE_FORMAT.format(new Date()))
-                        .key("lastTaskId")
-                        .value(((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId())
-                        .endObject();
-                obj.endObject();
-                fw.write(obj.toString());
-                fw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public TaskMap loadActiveUserTasks() {
-            var cachedUserData = fileManager.loadUser(activeUser);
-            ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(cachedUserData.lastTaskId);
-            return cachedUserData.tasks;
+            fileManager.saveModelState(Model.this);
         }
 
         @Override

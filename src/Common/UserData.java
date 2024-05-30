@@ -34,16 +34,20 @@ public class UserData implements JSONifiable {
 
     @Override
     public String toJSONString() {
-        return new JSONStringer()
+        var obj = new JSONStringer()
                 .object()
-                .key("tasks").array().endArray()
+                .key("tasks").array();
+        for (var task : tasks.values()) {
+            obj.value(task.toJSONObject());
+        }
+        obj.endArray()
                 .key("metadata")
                 .object()
                 .key("lastChanged").value(Model.DATE_FORMAT.format(new Date()))
                 .key("lastTaskId")
                 .value(((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId())
                 .endObject()
-                .endObject()
-                .toString();
+                .endObject();
+        return obj.toString();
     }
 }

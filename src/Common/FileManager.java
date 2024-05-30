@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Scanner;
 
 import org.json.JSONObject;
+import org.json.JSONStringer;
+
+import Model.Model;
 
 public class FileManager {
     private String cwd;
@@ -89,5 +93,39 @@ public class FileManager {
             e.printStackTrace(); // эта ошибка практически никогда не должна произойти
         }
         return new UserData();
+    }
+
+    public void saveModelState(Model model) {
+        if (model.getActiveUser() == null)
+            return;
+        var userTasksFile = new File("./clientDB/" + model.getActiveUser().name + ".json");
+        try {
+            var fw = new FileWriter(userTasksFile);
+            var userData = new UserData();
+            userData.tasks = model.getTasks();
+            userData.lastTaskId = ((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId();
+            // userData.lastChanged = new Date(); // TODO: костыль
+            fw.write(userData.toJSONString());
+            fw.close();
+            // var obj = new JSONStringer()
+            // .object()
+            // .key("tasks")
+            // .array();
+            // for (var task : model.getTasks().values()) {
+            // obj.value(task.toJSONObject());
+            // }
+            // obj.endArray();
+            // obj.key("metadata")
+            // .object()
+            // .key("lastChanged").value(Model.DATE_FORMAT.format(new Date()))
+            // .key("lastTaskId")
+            // .value(((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId())
+            // .endObject();
+            // obj.endObject();
+            // fw.write(obj.toString());
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
