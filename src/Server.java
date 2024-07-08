@@ -1,11 +1,16 @@
 import Common.FileManager;
+import Common.Task;
 import Common.User;
+import Common.UserData;
 import Common.UserMap;
 import ServerModel.Session;
 
 import java.net.*;
+import java.text.ParseException;
 import java.io.*;
 import java.util.ArrayList;
+
+import org.json.JSONObject;
 
 public class Server {
     private ServerSocket server = null;
@@ -15,12 +20,13 @@ public class Server {
     class CommunicationThread extends Thread {
         private Socket socket = null;
         private BufferedReader in = null;
-        private DataOutputStream out = null;
+        private BufferedWriter out = null;
         public Session session = null;
 
         public synchronized void write(String response) {
             try {
-                out.writeUTF(response);
+                out.write(response);
+                out.flush();
             } catch (IOException e) {
                 e.printStackTrace(); // TODO: обработать правильно
             }
@@ -29,8 +35,8 @@ public class Server {
         public CommunicationThread(Socket socket) {
             this.socket = socket;
             try {
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                out = new DataOutputStream(socket.getOutputStream());
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+                out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             } catch (IOException e) {
                 e.printStackTrace(); // это исключение не должно случаться
             }
@@ -54,7 +60,7 @@ public class Server {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                        out.writeUTF("400\n");
+                        write("400\n");
                     }
                 }
                 socket.close();
@@ -77,31 +83,53 @@ public class Server {
 
         @Override
         public void run() {
-            if (request.get(0).contains("GET")) {
-                String path = request.get(0).split(" ")[1];
-                var route = path.split("/"); // всегда 0 элемент является пустой строкой
-                if (route[1].equals("user")) {
-                    if (route[2].equals("tasks")) {
-                        var userData = fileManager.loadUser(communication.session.getUser());
-                        communication.session.setTasks(userData.tasks);
-                        communication.write(userData.toJSONString() + "\n");
-                    } else {
-                        User user = users.findByName(request.get(0).split("/")[2]);
-                        if (user != null) {
-                            communication.session.setUser(user);
+            var splittedRequest = request.get(0).split(" ");
+            String method = splittedRequest[0];
+            String path = splittedRequest[1];
+            var route = path.split("/"); // всегда 0 элемент является пустой строкой
+            try {
+                System.out.println(method.length());
+                switch (method) {
+                    case "GET":
+                        System.out.println("GET2");
+                        if (route[1].equals("user")) {
+                            if (route[2].equals("tasks")) {
+                                var userData = fileManager.loadUser(communication.session.getUser());
+                                communication.session.setTasks(userData.tasks);
+                                communication.write(userData.toJSONString() + "\n");
+                            } else {
+                                User user = users.findByName(request.get(0).split("/")[2]);
+                                if (user != null) {
+                                    communication.session.setUser(user);
+                                }
+                                communication.write(
+                                        (user != null ? user.toJSONString() : "404") + "\n");
+                            }
+                            return;
                         }
-                        communication.write(
-                                (user != null ? user.toJSONString() : "404") + "\n");
-                    }
-                    return;
+                        break;
+                    case "POST":
+                        System.out.println("POST");
+                        if (route[1].equals("syncronise")) {
+                            var userData = new UserData().fromJSONObject(new JSONObject(request.get(1)));
+                            fileManager.saveUserFile(communication.session.getUser(), userData);
+                        } else if (route[1].equals("tasks")) {
+                            var task = new Task().fromJSONObject(new JSONObject(request.get(1)));
+                            communication.session.getTasks().put(task.id, task);
+                        } else if (route[1].equals("user")) {
+
+                        }
+                    default:
+                        System.out.println("def");
+                        for (var x : method.chars().toArray()) {
+                            System.out.println((int) x);
+                        }
+                        communication.write("404\n");
                 }
-            } else if (request.get(0).contains("POST")) {
-
+            } catch (ParseException e) {
+                communication.write("400\n");
             }
-
-            communication.write("400\n");
         }
-
     }
 
     Server(int port, String cwd) {

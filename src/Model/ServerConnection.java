@@ -1,10 +1,11 @@
 package Model;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.Closeable;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.*;
 import java.text.ParseException;
 
@@ -16,26 +17,25 @@ import Common.UserData;
 
 public class ServerConnection implements Closeable {
     Socket socket;
-    DataOutputStream out;
+    BufferedWriter out;
     BufferedReader in;
 
     public ServerConnection() throws IOException, UnknownHostException {
         String loopback = "127.0.0.1";
         String server = loopback;
         socket = new Socket(server, 4444);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new DataOutputStream(socket.getOutputStream());
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+        out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
     }
 
     public void close() {
         try {
-            out.writeUTF("\nEnd\n");
+            out.write("\nEnd\n");
             socket.close();
             in.close();
             out.close();
         } catch (Exception ignored) {
         }
-
     }
 
     public boolean isClosed() {
@@ -43,7 +43,8 @@ public class ServerConnection implements Closeable {
     }
 
     public void send(String data) throws IOException {
-        out.writeUTF(data + "\nOver\n");
+        out.write(data + "\nOver\n");
+        out.flush();
     }
 
     public String receive() throws IOException {
@@ -65,8 +66,8 @@ public class ServerConnection implements Closeable {
 
     public User authenticate(String uncheckedUser) throws IOException {
         send("GET /user/" + uncheckedUser);
-        var response = receive().substring(1); // странный символ с ascii номером 0 в начале строки
-        if (response.contains("404")) {
+        var response = receive();
+        if (response.contains("404") || response.contains("400")) {
             return null;
         }
         try {
@@ -79,8 +80,7 @@ public class ServerConnection implements Closeable {
 
     public UserData readUserTasks(User user) throws IOException {
         send("GET /user/tasks/" + user.name);
-        var response = receive().substring(2); // странный символ с ascii номером 0 в начале строки
-        System.out.println(response);
+        var response = receive();
         try {
             return new UserData().fromJSONObject(new JSONObject(response));
         } catch (ParseException e) {
@@ -92,5 +92,16 @@ public class ServerConnection implements Closeable {
     public void createUser(String unregisteredUser) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'createUser'");
+    }
+
+    public void saveModelStateAndClose(Model model) throws IOException {
+        var request = "POST /syncronise\n";
+        var userData = new UserData();
+        userData.tasks = model.getTasks();
+        userData.lastTaskId = ((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId();
+        request += userData.toJSONString();
+        send(request);
+        receive(); // FIXME: КОСТЫЛЬ
+        close();
     }
 }

@@ -12,11 +12,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import org.json.JSONStringer;
-
-import java.util.Date;
 import java.io.File;
-import java.io.FileWriter;
 
 public class Model implements Closeable {
     private TaskMap tasks;
@@ -49,12 +45,10 @@ public class Model implements Closeable {
     }
 
     public class OnlineState extends State {
-
         @Override
         public void addTask(Task task) {
             try {
                 serverConnection.createTask(task);
-                tasks.put(task.id, task);
             } catch (Exception ignored) {
             }
         }
@@ -63,7 +57,6 @@ public class Model implements Closeable {
         public void deleteTask(int index) {
             try {
                 serverConnection.deleteTask(index);
-                tasks.remove(index);
             } catch (Exception ignored) {
             }
         }
@@ -72,7 +65,6 @@ public class Model implements Closeable {
         public void changeTask(int index, Task newTask) {
             try {
                 serverConnection.updateTask(index, newTask);
-                tasks.put(index, newTask);
             } catch (Exception ignored) {
             }
         }
@@ -98,7 +90,11 @@ public class Model implements Closeable {
 
         @Override
         public void close() {
-            serverConnection.close();
+            try {
+                serverConnection.saveModelStateAndClose(Model.this);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -113,17 +109,14 @@ public class Model implements Closeable {
 
         @Override
         public void addTask(Task task) {
-            tasks.put(task.id, task);
         }
 
         @Override
         public void deleteTask(int index) {
-            tasks.remove(index);
         }
 
         @Override
         public void changeTask(int index, Task newTask) {
-            tasks.put(index, newTask);
         }
 
         @Override
@@ -193,18 +186,21 @@ public class Model implements Closeable {
     public void addTask(Task task) {
         var oldTasks = tasks.clone();
         state.addTask(task);
+        tasks.put(task.id, task);
         propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
     public void deleteTask(int index) {
         var oldTasks = tasks.clone();
         state.deleteTask(index);
+        tasks.remove(index);
         propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
     public void changeTask(int index, Task newTask) {
         var oldTasks = tasks.clone();
         state.changeTask(index, newTask);
+        tasks.put(index, newTask);
         propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
