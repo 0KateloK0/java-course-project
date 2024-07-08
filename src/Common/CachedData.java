@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import org.json.JSONStringer;
 
 public class CachedData implements JSONifiable {
-    public UserMap userMap;
+    public UserMap users;
 
     @Override
     public String toJSONString() {
@@ -19,19 +19,18 @@ public class CachedData implements JSONifiable {
 
     @Override
     public CachedData fromJSONObject(JSONObject obj) throws ParseException {
-        var userMap = new UserMap();
+        users = new UserMap();
         var usersJSON = obj.getJSONArray("users");
         for (int i = 0; i < usersJSON.length(); ++i) {
             try {
 
                 var user = new User().fromJSONObject(usersJSON.getJSONObject(i));
-                userMap.put(user.id, user);
+                users.createUser(user);
             } catch (ParseException e) {
                 e.printStackTrace(); // TODO: пометить этого юзера как некорректного
             }
         }
 
-        this.userMap = userMap;
         return this;
     }
 

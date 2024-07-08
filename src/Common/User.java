@@ -8,10 +8,40 @@ import org.json.JSONStringer;
 public class User implements JSONifiable {
     public String name;
     public Integer id;
-    private static int lastId = 0;
+
+    public static interface IdGenerator {
+        public int getNewId();
+    }
+
+    public static class DefaultIdGenerator implements IdGenerator {
+        private int lastId = 1;
+
+        public int getLastId() {
+            return lastId;
+        }
+
+        public void setLastId(int lastId) {
+            this.lastId = lastId;
+        }
+
+        @Override
+        public int getNewId() {
+            return ++lastId;
+        }
+    }
+
+    private static IdGenerator idGenerator = new DefaultIdGenerator();
+
+    public static IdGenerator getIdGenerator() {
+        return User.idGenerator;
+    }
+
+    public static void setIdGenerator(IdGenerator idGenerator) {
+        User.idGenerator = idGenerator;
+    }
 
     public User() {
-        id = ++lastId;
+        id = idGenerator.getNewId();
         name = "";
     }
 

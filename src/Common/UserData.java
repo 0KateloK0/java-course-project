@@ -16,11 +16,11 @@ public class UserData implements JSONifiable {
     @Override
     public UserData fromJSONObject(JSONObject obj) throws ParseException {
         var tasksJSON = obj.getJSONArray("tasks");
-        this.tasks = new TaskMap();
+        tasks = new TaskMap();
         for (int j = 0; j < tasksJSON.length(); ++j) {
             try {
                 var task = new Task().fromJSONObject(tasksJSON.getJSONObject(j));
-                this.tasks.put(task.id, task);
+                tasks.createTask(task);
             } catch (ParseException e) {
                 e.printStackTrace();
                 // TODO: пометить это задание как задание с ошибкой
@@ -28,7 +28,7 @@ public class UserData implements JSONifiable {
         }
 
         var metadataJSON = obj.getJSONObject("metadata");
-        this.lastTaskId = metadataJSON.getInt("lastTaskId");
+        lastTaskId = metadataJSON.getInt("lastTaskId");
         return this;
     }
 

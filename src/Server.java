@@ -104,7 +104,7 @@ public class Server {
                                 communication.session.setTasks(userData.tasks);
                                 communication.send(userData.toJSONString() + "\n");
                             } else {
-                                User user = users.findByName(request.get(0).split("/")[2]);
+                                User user = users.readUser(request.get(0).split("/")[2]);
                                 if (user != null) {
                                     communication.session.setUser(user);
                                 }
@@ -124,7 +124,11 @@ public class Server {
                             var task = new Task().fromJSONObject(new JSONObject(request.get(1)));
                             communication.session.getTasks().put(task.id, task);
                         } else if (route[1].equals("user")) {
-
+                            var username = request.get(1);
+                            // users.put(null, null);
+                            var user = new User();
+                            user.name = username;
+                            users.createUser(user);
                         }
                         break;
                     case "DELETE":
@@ -133,6 +137,11 @@ public class Server {
                             communication.session.getTasks().remove(task_id);
                         }
                         break;
+                    case "UPDATE":
+                        if (route[1].equals("tasks")) {
+                            var task = new Task().fromJSONObject(new JSONObject(request.get(1)));
+                            communication.session.getTasks().put(task.id, task);
+                        }
                     default:
                         communication.send("404\n");
                 }
@@ -147,7 +156,7 @@ public class Server {
         var fileManager = new FileManager("./serverDB/");
         this.fileManager = fileManager;
         var cacheData = fileManager.loadCacheFile(new File(cwd + "/cache.json"));
-        users = cacheData.userMap;
+        users = cacheData.users;
 
         try {
             server = new ServerSocket(port);

@@ -31,11 +31,11 @@ public class Model implements Closeable {
     }
 
     private abstract class State {
-        public abstract void addTask(Task task);
+        public abstract void createTask(Task task);
 
         public abstract void deleteTask(int index);
 
-        public abstract void changeTask(int index, Task newTask);
+        public abstract void updateTask(int index, Task newTask);
 
         public abstract User authenticate(String uncheckedUser);
 
@@ -46,7 +46,7 @@ public class Model implements Closeable {
 
     public class OnlineState extends State {
         @Override
-        public void addTask(Task task) {
+        public void createTask(Task task) {
             try {
                 serverConnection.createTask(task);
             } catch (Exception e) {
@@ -64,7 +64,7 @@ public class Model implements Closeable {
         }
 
         @Override
-        public void changeTask(int index, Task newTask) {
+        public void updateTask(int index, Task newTask) {
             try {
                 serverConnection.updateTask(index, newTask);
             } catch (Exception e) {
@@ -111,7 +111,7 @@ public class Model implements Closeable {
         private FileManager fileManager = new FileManager("./clientDB/");
 
         @Override
-        public void addTask(Task task) {
+        public void createTask(Task task) {
         }
 
         @Override
@@ -119,15 +119,15 @@ public class Model implements Closeable {
         }
 
         @Override
-        public void changeTask(int index, Task newTask) {
+        public void updateTask(int index, Task newTask) {
         }
 
         @Override
         public User authenticate(String uncheckedUser) {
             var cacheFile = new File("./clientDB/cache.json");
             var cachedData = fileManager.loadCacheFile(cacheFile);
-            var userMap = cachedData.userMap;
-            var user = userMap.findByName(uncheckedUser);
+            var users = cachedData.users;
+            var user = users.readUser(uncheckedUser);
             if (user == null)
                 return null;
             setActiveUser(user);
@@ -188,22 +188,22 @@ public class Model implements Closeable {
 
     public void addTask(Task task) {
         var oldTasks = tasks.clone();
-        state.addTask(task);
-        tasks.put(task.id, task);
+        state.createTask(task);
+        tasks.createTask(task);
         propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
     public void deleteTask(int index) {
         var oldTasks = tasks.clone();
         state.deleteTask(index);
-        tasks.remove(index);
+        tasks.deleteTask(index);
         propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
     public void changeTask(int index, Task newTask) {
         var oldTasks = tasks.clone();
-        state.changeTask(index, newTask);
-        tasks.put(index, newTask);
+        state.updateTask(index, newTask);
+        tasks.updateTask(newTask);
         propertyChanger.firePropertyChange("tasks", oldTasks, tasks);
     }
 
