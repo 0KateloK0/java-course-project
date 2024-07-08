@@ -1,3 +1,4 @@
+import Common.DebugInfo;
 import Common.FileManager;
 import Common.Task;
 import Common.User;
@@ -51,10 +52,10 @@ public class Server {
                 while (true) {
                     try {
                         line = in.readLine();
-                        System.out.println(line);
-                        System.out.println(line.length());
-                        System.out.println(line.equals("End"));
-                        System.out.println((int) line.charAt(line.length() - 1));
+                        DebugInfo.print(line);
+                        DebugInfo.print(line.length());
+                        DebugInfo.print(line.equals("End"));
+                        DebugInfo.print((int) line.charAt(line.length() - 1));
                         if (line == null || line.equals("End"))
                             break;
                         if (line.equals("Over")) {
