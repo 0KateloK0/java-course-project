@@ -1,7 +1,6 @@
 package Common;
 
 import java.text.ParseException;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 import org.json.JSONObject;
@@ -9,9 +8,9 @@ import org.json.JSONStringer;
 import Model.Model;
 
 public class UserData implements JSONifiable {
-    public TaskMap tasks;
+    public TaskMap tasks = new TaskMap();
     public int lastTaskId;
-    public GregorianCalendar lastChanged;
+    public GregorianCalendar lastChanged = new GregorianCalendar();
 
     @Override
     public UserData fromJSONObject(JSONObject obj) throws ParseException {
@@ -29,6 +28,10 @@ public class UserData implements JSONifiable {
 
         var metadataJSON = obj.getJSONObject("metadata");
         lastTaskId = metadataJSON.getInt("lastTaskId");
+        lastChanged = new GregorianCalendar();
+        lastChanged.setTime(Model.DATE_FORMAT.parse(metadataJSON.getString("lastChanged")));
+        DebugInfo.print(metadataJSON.getString("lastChanged"));
+        DebugInfo.print(lastChanged);
         return this;
     }
 
@@ -43,7 +46,7 @@ public class UserData implements JSONifiable {
         obj.endArray()
                 .key("metadata")
                 .object()
-                .key("lastChanged").value(Model.DATE_FORMAT.format(new Date()))
+                .key("lastChanged").value(Model.DATE_FORMAT.format(lastChanged.getTime()))
                 .key("lastTaskId")
                 .value(((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId())
                 .endObject()

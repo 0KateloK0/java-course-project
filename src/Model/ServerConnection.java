@@ -96,13 +96,17 @@ public class ServerConnection implements Closeable {
         throw new UnsupportedOperationException("Unimplemented method 'createUser'");
     }
 
-    public void saveModelStateAndClose(Model model) throws IOException {
+    public void syncronise(Model model) throws IOException {
         var request = "POST /syncronise\n";
         var userData = new UserData();
         userData.tasks = model.getTasks();
         userData.lastTaskId = ((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId();
         request += userData.toJSONString();
         send(request);
+    }
+
+    public void saveModelStateAndClose(Model model) throws IOException {
+        syncronise(model);
         close();
     }
 }

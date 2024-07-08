@@ -44,7 +44,9 @@ public class Model implements Closeable {
         public abstract void close();
     }
 
-    public class OnlineState extends State {
+    private class OnlineState extends State {
+        private FileManager fileManager = new FileManager("./clientDB/");
+
         @Override
         public void createTask(Task task) {
             try {
@@ -80,9 +82,16 @@ public class Model implements Closeable {
                     return null;
                 setActiveUser(user);
 
-                var userData = serverConnection.readUserTasks(user);
-                ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(userData.lastTaskId);
-                tasks = userData.tasks;
+                var serverUserData = serverConnection.readUserTasks(user);
+                var cachedUserData = fileManager.loadUser(user);
+                if (cachedUserData.lastChanged.after(serverUserData.lastChanged)) {
+                    ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(cachedUserData.lastTaskId);
+                    tasks = cachedUserData.tasks;
+                    serverConnection.syncronise(Model.this);
+                } else {
+                    ((Task.DefaultIdGenerator) Task.getIdGenerator()).setLastId(serverUserData.lastTaskId);
+                    tasks = serverUserData.tasks;
+                }
 
                 return user;
             } catch (IOException e) {
@@ -95,6 +104,7 @@ public class Model implements Closeable {
         public void close() {
             try {
                 serverConnection.saveModelStateAndClose(Model.this);
+                fileManager.saveModelState(Model.this);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -107,7 +117,7 @@ public class Model implements Closeable {
         }
     }
 
-    public class OfflineState extends State {
+    private class OfflineState extends State {
         private FileManager fileManager = new FileManager("./clientDB/");
 
         @Override
@@ -151,11 +161,10 @@ public class Model implements Closeable {
     }
 
     private State state;
-    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("y MM dd HH:mm");
+    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("y MM dd HH:mm.ss");
 
     public Model() {
         tasks = new TaskMap();
-
         new Thread() {
             public void run() {
                 try {

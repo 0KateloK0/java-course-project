@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Scanner;
 
 import org.json.JSONObject;
@@ -112,8 +114,8 @@ public class FileManager {
         var userData = new UserData();
         userData.tasks = model.getTasks();
         userData.lastTaskId = ((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId();
-        // userData.lastChanged = new Date(); // TODO: костыль
+        userData.lastChanged = new GregorianCalendar();
+        userData.lastChanged.setTime(new Date());
         saveUserFile(model.getActiveUser(), userData);
-
     }
 }
