@@ -49,7 +49,8 @@ public class Model implements Closeable {
         public void addTask(Task task) {
             try {
                 serverConnection.createTask(task);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -57,7 +58,8 @@ public class Model implements Closeable {
         public void deleteTask(int index) {
             try {
                 serverConnection.deleteTask(index);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -65,7 +67,8 @@ public class Model implements Closeable {
         public void changeTask(int index, Task newTask) {
             try {
                 serverConnection.updateTask(index, newTask);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 

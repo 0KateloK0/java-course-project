@@ -30,11 +30,13 @@ public class ServerConnection implements Closeable {
 
     public void close() {
         try {
-            out.write("\nEnd\n");
-            socket.close();
+            out.write("End\n\0");
+            out.flush();
             in.close();
             out.close();
-        } catch (Exception ignored) {
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -101,7 +103,6 @@ public class ServerConnection implements Closeable {
         userData.lastTaskId = ((Task.DefaultIdGenerator) Task.getIdGenerator()).getLastId();
         request += userData.toJSONString();
         send(request);
-        receive(); // FIXME: КОСТЫЛЬ
         close();
     }
 }

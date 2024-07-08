@@ -23,7 +23,7 @@ public class Server {
         private BufferedWriter out = null;
         public Session session = null;
 
-        public synchronized void write(String response) {
+        public synchronized void send(String response) {
             try {
                 out.write(response);
                 out.flush();
@@ -48,9 +48,15 @@ public class Server {
             try {
                 var request = new ArrayList<String>();
                 String line = "";
-                while (!line.equals("End")) {
+                while (true) {
                     try {
                         line = in.readLine();
+                        System.out.println(line);
+                        System.out.println(line.length());
+                        System.out.println(line.equals("End"));
+                        System.out.println((int) line.charAt(line.length() - 1));
+                        if (line == null || line.equals("End"))
+                            break;
                         if (line.equals("Over")) {
                             var requestProcessingThread = new RequestProcessingThread(this, request);
                             requestProcessingThread.start();
@@ -60,13 +66,15 @@ public class Server {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                        write("400\n");
+                        send("400\n");
                     }
                 }
-                socket.close();
                 in.close();
                 out.close();
-            } catch (Exception ignored) {
+                socket.close();
+                fileManager.saveUserFile(session.getUser(), session.getUserData());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -88,30 +96,29 @@ public class Server {
             String path = splittedRequest[1];
             var route = path.split("/"); // всегда 0 элемент является пустой строкой
             try {
-                System.out.println(method.length());
                 switch (method) {
                     case "GET":
-                        System.out.println("GET2");
                         if (route[1].equals("user")) {
                             if (route[2].equals("tasks")) {
                                 var userData = fileManager.loadUser(communication.session.getUser());
                                 communication.session.setTasks(userData.tasks);
-                                communication.write(userData.toJSONString() + "\n");
+                                communication.send(userData.toJSONString() + "\n");
                             } else {
                                 User user = users.findByName(request.get(0).split("/")[2]);
                                 if (user != null) {
                                     communication.session.setUser(user);
                                 }
-                                communication.write(
+                                communication.send(
                                         (user != null ? user.toJSONString() : "404") + "\n");
                             }
-                            return;
+                            break;
                         }
                         break;
                     case "POST":
-                        System.out.println("POST");
                         if (route[1].equals("syncronise")) {
                             var userData = new UserData().fromJSONObject(new JSONObject(request.get(1)));
+                            if (communication.session.getUser() == null)
+                                break;
                             fileManager.saveUserFile(communication.session.getUser(), userData);
                         } else if (route[1].equals("tasks")) {
                             var task = new Task().fromJSONObject(new JSONObject(request.get(1)));
@@ -119,15 +126,19 @@ public class Server {
                         } else if (route[1].equals("user")) {
 
                         }
-                    default:
-                        System.out.println("def");
-                        for (var x : method.chars().toArray()) {
-                            System.out.println((int) x);
+                        break;
+                    case "DELETE":
+                        if (route[1].equals("tasks")) {
+                            var task_id = Integer.valueOf(request.get(1));
+                            communication.session.getTasks().remove(task_id);
                         }
-                        communication.write("404\n");
+                        break;
+                    default:
+                        communication.send("404\n");
                 }
-            } catch (ParseException e) {
-                communication.write("400\n");
+            } catch (ParseException | NumberFormatException e) {
+                e.printStackTrace();
+                communication.send("400\n");
             }
         }
     }

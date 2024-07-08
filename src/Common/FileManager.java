@@ -94,7 +94,7 @@ public class FileManager {
     }
 
     public void saveUserFile(User user, UserData userData) {
-        var userTasksFile = new File("./clientDB/" + user.name + ".json");
+        var userTasksFile = new File(getUserTasksFileLocation(user.name));
         try {
             var fw = new FileWriter(userTasksFile);
 
